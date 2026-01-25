@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSupabaseAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -11,31 +11,32 @@ import {
   Home,
   LogOut,
   User,
-  Sparkles
+  Sparkles,
+  Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Dashboard = () => {
-  const { user, logout, isAuthenticated, setFirstLoginComplete } = useAuth();
+  const { profile, isAuthenticated, loading, signOut, updateProfile } = useSupabaseAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!loading && !isAuthenticated) {
       navigate('/');
       return;
     }
     
-    if (user?.isFirstLogin) {
+    if (profile?.is_first_login) {
       toast.success('Welcome! Your Week-1 onboarding plan has been generated.', {
         icon: <Sparkles className="w-4 h-4" />,
         duration: 5000,
       });
-      setFirstLoginComplete();
+      updateProfile({ is_first_login: false });
     }
-  }, [isAuthenticated, navigate, user?.isFirstLogin, setFirstLoginComplete]);
+  }, [isAuthenticated, loading, navigate, profile?.is_first_login, updateProfile]);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await signOut();
     navigate('/');
     toast.info('Logged out successfully');
   };
@@ -71,7 +72,19 @@ const Dashboard = () => {
     },
   ];
 
-  if (!user) return null;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!profile) return null;
+
+  const currentDay = profile.current_day || 1;
+  const role = profile.role || 'Software Engineer';
+  const department = profile.department || 'Engineering';
 
   return (
     <div className="min-h-screen bg-background">
@@ -91,7 +104,7 @@ const Dashboard = () => {
             <div className="flex items-center gap-4">
               <div className="hidden sm:flex items-center gap-2 bg-card/10 backdrop-blur-sm rounded-lg px-3 py-2">
                 <User className="w-4 h-4" />
-                <span className="text-sm">{user.role}</span>
+                <span className="text-sm">{role}</span>
               </div>
               <Button 
                 variant="ghost" 
@@ -113,16 +126,16 @@ const Dashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Current Progress</p>
-                <p className="text-lg font-semibold">Day {user.currentDay} of 7</p>
+                <p className="text-lg font-semibold">Day {currentDay} of 7</p>
               </div>
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5, 6, 7].map((day) => (
                   <div
                     key={day}
                     className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-all ${
-                      day < user.currentDay
+                      day < currentDay
                         ? 'bg-success text-success-foreground'
-                        : day === user.currentDay
+                        : day === currentDay
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted text-muted-foreground'
                     }`}
@@ -177,15 +190,15 @@ const Dashboard = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
                   <div>
                     <p className="opacity-70">Role</p>
-                    <p className="font-medium">{user.role}</p>
+                    <p className="font-medium">{role}</p>
                   </div>
                   <div>
                     <p className="opacity-70">Department</p>
-                    <p className="font-medium">{user.department}</p>
+                    <p className="font-medium">{department}</p>
                   </div>
                   <div>
                     <p className="opacity-70">Current Day</p>
-                    <p className="font-medium">Day {user.currentDay} of 7</p>
+                    <p className="font-medium">Day {currentDay} of 7</p>
                   </div>
                 </div>
               </div>
