@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSupabaseAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -12,12 +12,13 @@ import {
   LogOut,
   User,
   Sparkles,
-  Loader2
+  Loader2,
+  Users
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Dashboard = () => {
-  const { profile, isAuthenticated, loading, signOut, updateProfile } = useSupabaseAuth();
+  const { profile, isAuthenticated, loading, signOut, updateProfile, isAdmin, roleLoading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -72,7 +73,7 @@ const Dashboard = () => {
     },
   ];
 
-  if (loading) {
+  if (loading || roleLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -106,6 +107,17 @@ const Dashboard = () => {
                 <User className="w-4 h-4" />
                 <span className="text-sm">{role}</span>
               </div>
+              {isAdmin && (
+                <Button 
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('/admin/users')}
+                  className="text-primary-foreground hover:bg-card/20"
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  Manage Users
+                </Button>
+              )}
               <Button 
                 variant="ghost" 
                 size="icon"

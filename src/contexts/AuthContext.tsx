@@ -1,81 +1,50 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
+import { useSupabaseAuth } from '@/hooks/useAuth';
+import { useUserRole, AppRole } from '@/hooks/useUserRole';
+import { User, Session } from '@supabase/supabase-js';
 
-interface User {
-  username: string;
-  role: string;
+interface Profile {
+  id: string;
+  user_id: string;
+  username: string | null;
+  full_name: string | null;
   department: string;
-  currentDay: number;
-  isFirstLogin: boolean;
+  role: string;
+  current_day: number;
+  is_first_login: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
+  profile: Profile | null;
+  loading: boolean;
   isAuthenticated: boolean;
-  login: (username: string, password: string) => Promise<boolean>;
-  logout: () => void;
-  updateCurrentDay: (day: number) => void;
-  setFirstLoginComplete: () => void;
+  appRole: AppRole | null;
+  isAdmin: boolean;
+  isModerator: boolean;
+  roleLoading: boolean;
+  updateProfile: (updates: Partial<Profile>) => Promise<void>;
+  signOut: () => Promise<void>;
+  refetchProfile: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    const stored = localStorage.getItem('onboarding_user');
-    return stored ? JSON.parse(stored) : null;
-  });
+  const auth = useSupabaseAuth();
+  const { role, isAdmin, isModerator, loading: roleLoading } = useUserRole(auth.user?.id);
 
-  const login = useCallback(async (username: string, password: string): Promise<boolean> => {
-    // Hardcoded credentials for testing
-    if (username === 'company@123' && password === '1234') {
-      const storedUser = localStorage.getItem('onboarding_user');
-      const existingUser = storedUser ? JSON.parse(storedUser) : null;
-      
-      const newUser: User = {
-        username,
-        role: 'Software Engineer',
-        department: 'Engineering',
-        currentDay: existingUser?.currentDay || 1,
-        isFirstLogin: !existingUser,
-      };
-      
-      setUser(newUser);
-      localStorage.setItem('onboarding_user', JSON.stringify(newUser));
-      return true;
-    }
-    return false;
-  }, []);
-
-  const logout = useCallback(() => {
-    setUser(null);
-    localStorage.removeItem('onboarding_user');
-  }, []);
-
-  const updateCurrentDay = useCallback((day: number) => {
-    if (user) {
-      const updatedUser = { ...user, currentDay: day };
-      setUser(updatedUser);
-      localStorage.setItem('onboarding_user', JSON.stringify(updatedUser));
-    }
-  }, [user]);
-
-  const setFirstLoginComplete = useCallback(() => {
-    if (user) {
-      const updatedUser = { ...user, isFirstLogin: false };
-      setUser(updatedUser);
-      localStorage.setItem('onboarding_user', JSON.stringify(updatedUser));
-    }
-  }, [user]);
+  const value: AuthContextType = {
+    ...auth,
+    appRole: role,
+    isAdmin,
+    isModerator,
+    roleLoading,
+  };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      isAuthenticated: !!user,
-      login,
-      logout,
-      updateCurrentDay,
-      setFirstLoginComplete,
-    }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

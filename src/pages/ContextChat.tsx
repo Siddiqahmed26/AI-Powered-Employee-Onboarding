@@ -39,7 +39,7 @@ const getAIResponse = (query: string, day: number, role: string, department: str
 };
 
 const ContextChat = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { profile, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -47,17 +47,21 @@ const ContextChat = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!loading && !isAuthenticated) {
       navigate('/');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, loading, navigate]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const currentDay = profile?.current_day || 1;
+  const role = profile?.role || 'Software Engineer';
+  const department = profile?.department || 'Engineering';
+
   const handleSend = async () => {
-    if (!input.trim() || !user) return;
+    if (!input.trim() || !profile) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -75,7 +79,7 @@ const ContextChat = () => {
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: getAIResponse(input, user.currentDay, user.role, user.department),
+        content: getAIResponse(input, currentDay, role, department),
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);
@@ -83,7 +87,7 @@ const ContextChat = () => {
     }, 1000);
   };
 
-  if (!user) return null;
+  if (loading || !profile) return null;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -114,15 +118,15 @@ const ContextChat = () => {
             <div className="flex flex-wrap gap-4 text-sm">
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground">Role:</span>
-                <span className="font-medium text-success">{user.role}</span>
+                <span className="font-medium text-success">{role}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground">Department:</span>
-                <span className="font-medium text-info">{user.department}</span>
+                <span className="font-medium text-info">{department}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground">Day:</span>
-                <span className="font-medium text-warning">Day {user.currentDay}</span>
+                <span className="font-medium text-warning">Day {currentDay}</span>
               </div>
             </div>
           </CardContent>

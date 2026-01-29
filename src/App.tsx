@@ -10,6 +10,7 @@ import ContextChat from "./pages/ContextChat";
 import DayPlan from "./pages/DayPlan";
 import SafeMode from "./pages/SafeMode";
 import Documents from "./pages/Documents";
+import UserManagement from "./pages/UserManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/day-plan" element={<DayPlan />} />
             <Route path="/safe-mode" element={<SafeMode />} />
             <Route path="/documents" element={<Documents />} />
+            <Route path="/admin/users" element={<UserManagement />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

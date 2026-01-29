@@ -55,20 +55,22 @@ const dayPlans: Record<number, Task[]> = {
 };
 
 const DayPlan = () => {
-  const { user, isAuthenticated, updateCurrentDay } = useAuth();
+  const { profile, isAuthenticated, loading, updateProfile } = useAuth();
   const navigate = useNavigate();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedDay, setSelectedDay] = useState(1);
 
+  const currentDay = profile?.current_day || 1;
+
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!loading && !isAuthenticated) {
       navigate('/');
       return;
     }
-    if (user) {
-      setSelectedDay(user.currentDay);
+    if (profile) {
+      setSelectedDay(currentDay);
     }
-  }, [isAuthenticated, navigate, user]);
+  }, [isAuthenticated, loading, navigate, profile, currentDay]);
 
   useEffect(() => {
     // Load tasks for selected day
@@ -95,15 +97,15 @@ const DayPlan = () => {
 
   const handleDayChange = (day: number) => {
     setSelectedDay(day);
-    if (user && day !== user.currentDay) {
-      updateCurrentDay(day);
+    if (profile && day !== currentDay) {
+      updateProfile({ current_day: day });
     }
   };
 
   const completedCount = tasks.filter((t) => t.completed).length;
   const progress = tasks.length > 0 ? (completedCount / tasks.length) * 100 : 0;
 
-  if (!user) return null;
+  if (loading || !profile) return null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -148,7 +150,7 @@ const DayPlan = () => {
                   className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold transition-all ${
                     day === selectedDay
                       ? 'bg-info text-info-foreground shadow-md'
-                      : day <= user.currentDay
+                      : day <= currentDay
                       ? 'bg-success/20 text-success border border-success/30'
                       : 'bg-muted text-muted-foreground'
                   }`}
