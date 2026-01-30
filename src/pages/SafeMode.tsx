@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -196,7 +197,13 @@ const SafeMode = () => {
                             : 'bg-success/10 border border-success/20'
                         }`}
                       >
-                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                        <div className="text-sm prose prose-sm dark:prose-invert max-w-none">
+                          {message.role === 'assistant' ? (
+                            <ReactMarkdown>{message.content}</ReactMarkdown>
+                          ) : (
+                            <p className="m-0">{message.content}</p>
+                          )}
+                        </div>
                       </div>
                       {message.role === 'user' && (
                         <div className="w-8 h-8 rounded-lg bg-warning flex items-center justify-center flex-shrink-0">
