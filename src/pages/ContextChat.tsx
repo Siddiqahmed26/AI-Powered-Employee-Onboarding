@@ -1,50 +1,28 @@
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, Bot, User, Sparkles } from 'lucide-react';
-
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-}
-
-const aiResponses: Record<string, string> = {
-  'what should i focus on today': "Here are your 3 priorities for Day {day}: 1) Complete HR paperwork 2) Set up development environment 3) Meet your team lead. You're doing great! 🎉",
-  'what should i do now': "You're doing great! For Day {day}, let's focus on: 1) Review the codebase architecture (2 hours) 2) Complete your first small bug fix. Take it one step at a time - you've got this! 👍",
-  'im confused': "I understand Day {day} can feel overwhelming. Let me help you prioritize: Start with the most important task from your day plan. Would you like me to break it down into smaller steps?",
-  'default': "I'm here to help you navigate Day {day} of your onboarding. Based on your role as a {role} in {department}, I can provide personalized guidance. What specific area would you like help with?",
-};
-
-const getAIResponse = (query: string, day: number, role: string, department: string): string => {
-  const lowerQuery = query.toLowerCase();
-  
-  let response = aiResponses.default;
-  
-  for (const [key, value] of Object.entries(aiResponses)) {
-    if (key !== 'default' && lowerQuery.includes(key)) {
-      response = value;
-      break;
-    }
-  }
-  
-  return response
-    .replace(/{day}/g, day.toString())
-    .replace(/{role}/g, role)
-    .replace(/{department}/g, department);
-};
+import { ArrowLeft, Send, Bot, User, AlertCircle } from 'lucide-react';
+import { useOnboardingChat } from '@/hooks/useOnboardingChat';
 
 const ContextChat = () => {
   const { profile, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const currentDay = profile?.current_day || 1;
+  const role = profile?.role || 'Software Engineer';
+  const department = profile?.department || 'Engineering';
+
+  const { messages, isLoading, error, sendMessage } = useOnboardingChat({
+    context: {
+      role,
+      department,
+      currentDay,
+    },
+  });
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -56,35 +34,18 @@ const ContextChat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const currentDay = profile?.current_day || 1;
-  const role = profile?.role || 'Software Engineer';
-  const department = profile?.department || 'Engineering';
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const input = form.elements.namedItem('message') as HTMLInputElement;
+    if (input.value.trim()) {
+      sendMessage(input.value);
+      input.value = '';
+    }
+  };
 
-  const handleSend = async () => {
-    if (!input.trim() || !profile) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: input,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInput('');
-    setIsTyping(true);
-
-    // Simulate AI response delay
-    setTimeout(() => {
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: getAIResponse(input, currentDay, role, department),
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, aiMessage]);
-      setIsTyping(false);
-    }, 1000);
+  const handleQuickQuestion = (question: string) => {
+    sendMessage(question);
   };
 
   if (loading || !profile) return null;
@@ -104,8 +65,8 @@ const ContextChat = () => {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-xl font-bold">Context-Aware Chat</h1>
-              <p className="text-sm opacity-80">AI assistant tailored to your role & day</p>
+              <h1 className="text-xl font-bold">AI Onboarding Assistant</h1>
+              <p className="text-sm opacity-80">Get personalized help for your onboarding journey</p>
             </div>
           </div>
         </div>
@@ -133,6 +94,16 @@ const ContextChat = () => {
         </Card>
       </div>
 
+      {/* Error Alert */}
+      {error && (
+        <div className="container mx-auto px-4">
+          <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-lg px-4 py-3 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4" />
+            <span className="text-sm">{error}</span>
+          </div>
+        </div>
+      )}
+
       {/* Chat Messages */}
       <main className="flex-1 container mx-auto px-4 py-4 overflow-y-auto">
         {messages.length === 0 ? (
@@ -142,16 +113,21 @@ const ContextChat = () => {
             </div>
             <h2 className="text-lg font-semibold mb-2">How can I help you today?</h2>
             <p className="text-muted-foreground text-sm max-w-md mx-auto">
-              I'm aware of your role, department, and current progress. Ask me anything about your onboarding!
+              I'm your AI onboarding assistant, aware of your role, department, and progress. Ask me anything about your onboarding!
             </p>
             <div className="flex flex-wrap justify-center gap-2 mt-6">
-              {['What should I focus on today?', 'I\'m confused about my tasks'].map((q) => (
+              {[
+                'What should I focus on today?',
+                "I'm confused about my tasks",
+                'Who should I meet this week?',
+              ].map((q) => (
                 <Button
                   key={q}
                   variant="outline"
                   size="sm"
                   className="text-xs"
-                  onClick={() => setInput(q)}
+                  onClick={() => handleQuickQuestion(q)}
+                  disabled={isLoading}
                 >
                   {q}
                 </Button>
@@ -177,7 +153,7 @@ const ContextChat = () => {
                       : 'bg-coral/10 border border-coral/20 text-foreground'
                   }`}
                 >
-                  <p className="text-sm">{message.content}</p>
+                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                 </div>
                 {message.role === 'user' && (
                   <div className="w-8 h-8 rounded-lg bg-warning flex items-center justify-center flex-shrink-0">
@@ -186,7 +162,7 @@ const ContextChat = () => {
                 )}
               </div>
             ))}
-            {isTyping && (
+            {isLoading && messages[messages.length - 1]?.role === 'user' && (
               <div className="flex gap-3">
                 <div className="w-8 h-8 rounded-lg bg-gradient-green flex items-center justify-center">
                   <Bot className="w-4 h-4 text-primary-foreground" />
@@ -208,20 +184,19 @@ const ContextChat = () => {
       {/* Input */}
       <div className="sticky bottom-0 bg-background border-t p-4">
         <div className="container mx-auto max-w-3xl">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSend();
-            }}
-            className="flex gap-2"
-          >
+          <form onSubmit={handleSubmit} className="flex gap-2">
             <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
+              name="message"
               placeholder="Ask about your onboarding..."
               className="flex-1 h-12"
+              disabled={isLoading}
             />
-            <Button type="submit" size="icon" className="h-12 w-12 bg-gradient-green">
+            <Button 
+              type="submit" 
+              size="icon" 
+              className="h-12 w-12 bg-gradient-green"
+              disabled={isLoading}
+            >
               <Send className="w-5 h-5" />
             </Button>
           </form>
