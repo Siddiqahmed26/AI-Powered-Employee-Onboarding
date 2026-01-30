@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -153,7 +154,13 @@ const ContextChat = () => {
                       : 'bg-coral/10 border border-coral/20 text-foreground'
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <div className="text-sm prose prose-sm dark:prose-invert max-w-none">
+                    {message.role === 'assistant' ? (
+                      <ReactMarkdown>{message.content}</ReactMarkdown>
+                    ) : (
+                      <p>{message.content}</p>
+                    )}
+                  </div>
                 </div>
                 {message.role === 'user' && (
                   <div className="w-8 h-8 rounded-lg bg-warning flex items-center justify-center flex-shrink-0">
