@@ -2,3 +2,6 @@ project_id = "ldrpczjpcylmwheliwfn"
 
 [functions.onboarding-chat]
 verify_jwt = false
+
+[functions.safe-mode-chat]
+verify_jwt = false

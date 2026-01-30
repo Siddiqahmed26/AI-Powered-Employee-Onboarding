@@ -1,46 +1,18 @@
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, Bot, User, Shield, Heart, Lightbulb, ThumbsUp, Sparkles } from 'lucide-react';
-
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-}
-
-const safeResponses: Record<string, string> = {
-  'vpn': "Great question! VPN setup is important. Here's how: 1) Download Cisco AnyConnect from IT Portal 2) Use your employee credentials 3) Connect to 'Company-VPN-Main'. Need help with any step? I'm here!",
-  'stupid': "There are no stupid questions here! Your curiosity is exactly what helps you learn. Let me help you with that.",
-  'basic': "Every expert started with the basics! It's smart to ask. What would you like to know?",
-  'dumb': "Not dumb at all! Asking questions shows you're engaged and want to learn. How can I help?",
-  'embarrassed': "No need to feel that way here! This is a safe space to learn. What's on your mind?",
-  'default': "That's a great question! I'm here to help without any judgment. Let me find the best answer for you. Remember, every question is valid and helps you grow! 🌟",
-};
-
-const getSafeResponse = (query: string): string => {
-  const lowerQuery = query.toLowerCase();
-  
-  for (const [key, value] of Object.entries(safeResponses)) {
-    if (key !== 'default' && lowerQuery.includes(key)) {
-      return value;
-    }
-  }
-  
-  return safeResponses.default;
-};
+import { ArrowLeft, Send, Bot, User, Shield, Heart, Lightbulb, ThumbsUp, Sparkles, AlertCircle } from 'lucide-react';
+import { useSafeModeChat } from '@/hooks/useSafeModeChat';
 
 const SafeMode = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const { messages, isLoading, error, sendMessage } = useSafeModeChat();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -52,30 +24,18 @@ const SafeMode = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = async () => {
-    if (!input.trim()) return;
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const input = form.elements.namedItem('message') as HTMLInputElement;
+    if (input.value.trim()) {
+      sendMessage(input.value);
+      input.value = '';
+    }
+  };
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: input,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInput('');
-    setIsTyping(true);
-
-    setTimeout(() => {
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: getSafeResponse(input),
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, aiMessage]);
-      setIsTyping(false);
-    }, 1200);
+  const handleQuickQuestion = (question: string) => {
+    sendMessage(question);
   };
 
   const principles = [
@@ -181,6 +141,14 @@ const SafeMode = () => {
             </CardHeader>
 
             <CardContent className="flex-1 overflow-y-auto p-4">
+              {/* Error Alert */}
+              {error && (
+                <div className="mb-4 bg-destructive/10 border border-destructive/20 text-destructive rounded-lg px-4 py-3 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm">{error}</span>
+                </div>
+              )}
+
               {messages.length === 0 ? (
                 <div className="text-center py-8">
                   <div className="w-14 h-14 rounded-2xl bg-gradient-pink mx-auto mb-4 flex items-center justify-center">
@@ -194,13 +162,15 @@ const SafeMode = () => {
                     {[
                       'This might be a stupid question, but...',
                       'How do I access the company VPN?',
+                      "I'm feeling overwhelmed, what should I do?",
                     ].map((q) => (
                       <Button
                         key={q}
                         variant="outline"
                         size="sm"
                         className="text-xs"
-                        onClick={() => setInput(q)}
+                        onClick={() => handleQuickQuestion(q)}
+                        disabled={isLoading}
                       >
                         {q}
                       </Button>
@@ -226,7 +196,7 @@ const SafeMode = () => {
                             : 'bg-success/10 border border-success/20'
                         }`}
                       >
-                        <p className="text-sm">{message.content}</p>
+                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                       </div>
                       {message.role === 'user' && (
                         <div className="w-8 h-8 rounded-lg bg-warning flex items-center justify-center flex-shrink-0">
@@ -235,7 +205,7 @@ const SafeMode = () => {
                       )}
                     </div>
                   ))}
-                  {isTyping && (
+                  {isLoading && messages[messages.length - 1]?.role === 'user' && (
                     <div className="flex gap-3">
                       <div className="w-8 h-8 rounded-lg bg-gradient-pink flex items-center justify-center">
                         <Bot className="w-4 h-4 text-primary-foreground" />
@@ -255,20 +225,19 @@ const SafeMode = () => {
             </CardContent>
 
             <div className="border-t p-4">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleSend();
-                }}
-                className="flex gap-2"
-              >
+              <form onSubmit={handleSubmit} className="flex gap-2">
                 <Input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  name="message"
                   placeholder="Ask your 'basic' question here... it's safe!"
                   className="flex-1 h-11"
+                  disabled={isLoading}
                 />
-                <Button type="submit" size="icon" className="h-11 w-11 bg-gradient-pink">
+                <Button 
+                  type="submit" 
+                  size="icon" 
+                  className="h-11 w-11 bg-gradient-pink"
+                  disabled={isLoading}
+                >
                   <Send className="w-5 h-5" />
                 </Button>
               </form>
