@@ -1,23 +1,32 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDocuments } from '@/hooks/useDocuments';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
-  ArrowLeft, 
-  FileText, 
-  Upload, 
-  Book, 
-  ClipboardList, 
+import { Skeleton } from '@/components/ui/skeleton';
+import DocumentList from '@/components/Documents/DocumentList';
+import UploadDocumentDialog from '@/components/Documents/UploadDocumentDialog';
+import {
+  ArrowLeft,
+  FileText,
+  Upload,
   Search,
   CheckCircle,
   Info,
-  AlertCircle
 } from 'lucide-react';
 
 const Documents = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const {
+    hrPolicies,
+    toolSops,
+    loading,
+    uploadDocument,
+    deleteDocument,
+    getPublicUrl,
+  } = useDocuments();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -25,41 +34,29 @@ const Documents = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  const documents = [
-    {
-      title: 'HR Policy PDFs',
-      description: 'Employee handbook, benefits',
-      icon: Book,
-      count: 3,
-      color: 'bg-info',
-    },
-    {
-      title: 'Tool SOPs',
-      description: 'Standard operating procedures',
-      icon: ClipboardList,
-      count: 5,
-      color: 'bg-purple',
-    },
-  ];
+  const handleUpload = async (file: File, title: string, category: 'hr_policy' | 'tool_sop') => {
+    if (!user) return false;
+    return uploadDocument(file, title, category, user.id);
+  };
 
   const responseProtocol = [
-    { 
-      number: 1, 
-      title: 'Primary Source', 
+    {
+      number: 1,
+      title: 'Primary Source',
       desc: 'Answers from company documents first',
-      color: 'bg-success'
+      color: 'bg-success',
     },
-    { 
-      number: 2, 
-      title: 'Fallback Response', 
+    {
+      number: 2,
+      title: 'Fallback Response',
       desc: '"This isn\'t in the docs yet, but usually..."',
-      color: 'bg-warning'
+      color: 'bg-warning',
     },
-    { 
-      number: 3, 
-      title: 'Transparency', 
+    {
+      number: 3,
+      title: 'Transparency',
       desc: 'Always indicate source confidence',
-      color: 'bg-info'
+      color: 'bg-info',
     },
   ];
 
@@ -71,8 +68,8 @@ const Documents = () => {
       <header className="bg-gradient-blue text-primary-foreground">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="icon"
               onClick={() => navigate('/dashboard')}
               className="text-primary-foreground hover:bg-card/20"
@@ -91,36 +88,47 @@ const Documents = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6">
-        {/* Admin Uploads Section */}
-        <Card className="shadow-lg border-0">
-          <CardHeader>
+        {/* Admin Upload Button */}
+        {isAdmin && (
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-blue flex items-center justify-center">
                 <Upload className="w-4 h-4 text-primary-foreground" />
               </div>
-              <CardTitle className="text-base">Admin Uploads</CardTitle>
+              <span className="font-medium text-sm">Admin Uploads</span>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {documents.map((doc, i) => (
-              <div 
-                key={i}
-                className="flex items-center gap-4 p-4 rounded-xl border hover:border-primary/30 hover:bg-muted/30 transition-all cursor-pointer"
-              >
-                <div className={`w-10 h-10 rounded-lg ${doc.color} flex items-center justify-center`}>
-                  <doc.icon className="w-5 h-5 text-primary-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium">{doc.title}</p>
-                  <p className="text-sm text-muted-foreground">{doc.description}</p>
-                </div>
-                <div className="text-xs bg-muted px-2 py-1 rounded-full">
-                  {doc.count} files
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+            <UploadDocumentDialog onUpload={handleUpload} />
+          </div>
+        )}
+
+        {/* Document Lists */}
+        {loading ? (
+          <div className="space-y-4">
+            <Skeleton className="h-48 w-full rounded-xl" />
+            <Skeleton className="h-48 w-full rounded-xl" />
+          </div>
+        ) : (
+          <>
+            <DocumentList
+              title="HR Policy PDFs"
+              description="Employee handbook, benefits, company policies"
+              documents={hrPolicies}
+              icon="hr"
+              isAdmin={isAdmin}
+              getPublicUrl={getPublicUrl}
+              onDelete={deleteDocument}
+            />
+            <DocumentList
+              title="Tool SOPs"
+              description="Standard operating procedures"
+              documents={toolSops}
+              icon="sop"
+              isAdmin={isAdmin}
+              getPublicUrl={getPublicUrl}
+              onDelete={deleteDocument}
+            />
+          </>
+        )}
 
         {/* AI Response Protocol */}
         <Card className="bg-gradient-orange text-primary-foreground border-0 shadow-lg">
@@ -155,28 +163,21 @@ const Documents = () => {
             <p className="text-sm text-muted-foreground">Sarah needs clarification on remote work policy</p>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* User Query */}
             <div className="bg-warning/10 border border-warning/20 rounded-xl p-4">
               <p className="text-xs text-warning font-medium mb-1">User Query:</p>
               <p className="text-sm italic">"Can I work from home on Fridays?"</p>
             </div>
-
-            {/* Document Grounding */}
             <div className="bg-info/10 border border-info/20 rounded-xl p-4">
               <p className="text-xs text-info font-medium mb-1">Document Grounding:</p>
               <p className="text-sm">AI searches HR Policy PDF for remote work section</p>
             </div>
-
-            {/* AI Response */}
             <div className="bg-success/10 border border-success/20 rounded-xl p-4">
               <p className="text-xs text-success font-medium mb-1">AI Response:</p>
               <p className="text-sm">
-                "According to our HR policy, engineers can work remotely up to 2 days per week 
+                "According to our HR policy, engineers can work remotely up to 2 days per week
                 after the first month. You're welcome to discuss flexible arrangements with your manager!"
               </p>
             </div>
-
-            {/* Source Confidence */}
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <CheckCircle className="w-4 h-4 text-success" />
               <span>Source: HR_Policy_2024.pdf (Page 12) • Confidence: High</span>
@@ -192,9 +193,9 @@ const Documents = () => {
               <div>
                 <p className="font-medium text-sm mb-1">How it works</p>
                 <p className="text-sm text-muted-foreground">
-                  When you ask a question, the AI first searches through company documents. 
-                  If the answer is found, it provides a sourced response. If not, it will 
-                  give general guidance while clearly indicating the information is not from 
+                  When you ask a question, the AI first searches through company documents.
+                  If the answer is found, it provides a sourced response. If not, it will
+                  give general guidance while clearly indicating the information is not from
                   official documents.
                 </p>
               </div>
