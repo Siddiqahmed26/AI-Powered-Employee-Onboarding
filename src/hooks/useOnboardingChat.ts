@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface ChatMessage {
   id: string;
@@ -41,11 +42,17 @@ export const useOnboardingChat = ({ context }: UseOnboardingChatOptions) => {
     let assistantContent = '';
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) {
+        throw new Error('You must be logged in to use this feature.');
+      }
+
       const response = await fetch(CHAT_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           messages: [...messages, userMessage].map(m => ({
@@ -75,7 +82,6 @@ export const useOnboardingChat = ({ context }: UseOnboardingChatOptions) => {
       const decoder = new TextDecoder();
       let textBuffer = '';
 
-      // Create initial assistant message
       const assistantMessageId = (Date.now() + 1).toString();
       setMessages(prev => [
         ...prev,
@@ -119,7 +125,6 @@ export const useOnboardingChat = ({ context }: UseOnboardingChatOptions) => {
               );
             }
           } catch {
-            // Incomplete JSON, put it back
             textBuffer = line + '\n' + textBuffer;
             break;
           }
@@ -156,7 +161,6 @@ export const useOnboardingChat = ({ context }: UseOnboardingChatOptions) => {
     } catch (err) {
       console.error('Chat error:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
-      // Remove the empty assistant message if there was an error
       if (!assistantContent) {
         setMessages(prev => prev.filter(m => m.role !== 'assistant' || m.content !== ''));
       }
