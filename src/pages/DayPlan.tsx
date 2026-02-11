@@ -1,58 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { getDayPlan, TaskTemplate } from '@/data/dayPlans';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Calendar, CheckCircle2, Clock, Zap, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
-interface Task {
-  id: string;
-  title: string;
-  duration: string;
+interface Task extends TaskTemplate {
   completed: boolean;
-  priority: 'high' | 'medium' | 'low';
 }
-
-const dayPlans: Record<number, Task[]> = {
-  1: [
-    { id: '1-1', title: 'Complete HR paperwork', duration: '1 hour', completed: false, priority: 'high' },
-    { id: '1-2', title: 'Set up development environment', duration: '2 hours', completed: false, priority: 'high' },
-    { id: '1-3', title: 'Meet your team lead', duration: '30 min', completed: false, priority: 'medium' },
-    { id: '1-4', title: 'Review employee handbook', duration: '1 hour', completed: false, priority: 'medium' },
-  ],
-  2: [
-    { id: '2-1', title: 'Complete security training', duration: '1 hour', completed: false, priority: 'high' },
-    { id: '2-2', title: 'Get access to code repository', duration: '30 min', completed: false, priority: 'high' },
-    { id: '2-3', title: 'Review team documentation', duration: '2 hours', completed: false, priority: 'medium' },
-  ],
-  3: [
-    { id: '3-1', title: 'Shadow a team member', duration: '3 hours', completed: false, priority: 'high' },
-    { id: '3-2', title: 'Attend team standup', duration: '30 min', completed: false, priority: 'medium' },
-    { id: '3-3', title: 'Review current sprint tasks', duration: '1 hour', completed: false, priority: 'medium' },
-  ],
-  4: [
-    { id: '4-1', title: 'Pick your first bug to fix', duration: '30 min', completed: false, priority: 'high' },
-    { id: '4-2', title: 'Set up local testing environment', duration: '1 hour', completed: false, priority: 'high' },
-    { id: '4-3', title: 'Review code review guidelines', duration: '45 min', completed: false, priority: 'medium' },
-  ],
-  5: [
-    { id: '5-1', title: 'Review codebase architecture', duration: '2 hours', completed: false, priority: 'high' },
-    { id: '5-2', title: 'Complete first small bug fix', duration: '2 hours', completed: false, priority: 'high' },
-    { id: '5-3', title: 'Submit your first PR', duration: '30 min', completed: false, priority: 'medium' },
-  ],
-  6: [
-    { id: '6-1', title: 'Pair programming session', duration: '2 hours', completed: false, priority: 'high' },
-    { id: '6-2', title: 'Attend 1:1 with manager', duration: '30 min', completed: false, priority: 'high' },
-    { id: '6-3', title: 'Document learnings so far', duration: '1 hour', completed: false, priority: 'medium' },
-  ],
-  7: [
-    { id: '7-1', title: 'Present Week 1 summary', duration: '30 min', completed: false, priority: 'high' },
-    { id: '7-2', title: 'Set goals for Week 2', duration: '1 hour', completed: false, priority: 'high' },
-    { id: '7-3', title: 'Feedback session with team', duration: '30 min', completed: false, priority: 'medium' },
-  ],
-};
 
 const DayPlan = () => {
   const { profile, isAuthenticated, loading, updateProfile } = useAuth();
@@ -61,6 +19,7 @@ const DayPlan = () => {
   const [selectedDay, setSelectedDay] = useState(1);
 
   const currentDay = profile?.current_day || 1;
+  const department = profile?.department || 'Engineering';
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -73,23 +32,24 @@ const DayPlan = () => {
   }, [isAuthenticated, loading, navigate, profile, currentDay]);
 
   useEffect(() => {
-    // Load tasks for selected day
-    const storedTasks = localStorage.getItem(`tasks_day_${selectedDay}`);
+    const storageKey = `tasks_${department}_day_${selectedDay}`;
+    const storedTasks = localStorage.getItem(storageKey);
     if (storedTasks) {
       setTasks(JSON.parse(storedTasks));
     } else {
-      setTasks(dayPlans[selectedDay] || []);
+      const templates = getDayPlan(department, selectedDay);
+      setTasks(templates.map((t) => ({ ...t, completed: false })));
     }
-  }, [selectedDay]);
+  }, [selectedDay, department]);
 
   const toggleTask = (taskId: string) => {
     const updated = tasks.map((t) =>
       t.id === taskId ? { ...t, completed: !t.completed } : t
     );
     setTasks(updated);
-    localStorage.setItem(`tasks_day_${selectedDay}`, JSON.stringify(updated));
-    
-    const task = tasks.find(t => t.id === taskId);
+    localStorage.setItem(`tasks_${department}_day_${selectedDay}`, JSON.stringify(updated));
+
+    const task = tasks.find((t) => t.id === taskId);
     if (task && !task.completed) {
       toast.success('Task completed! Great progress! 🎉');
     }
@@ -109,12 +69,11 @@ const DayPlan = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="bg-gradient-orange text-primary-foreground">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="icon"
               onClick={() => navigate('/dashboard')}
               className="text-primary-foreground hover:bg-card/20"
@@ -122,11 +81,11 @@ const DayPlan = () => {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="flex-1">
-              <h1 className="text-xl font-bold">Auto-Generated Day-Wise Plan</h1>
-              <p className="text-sm opacity-80">Plan created automatically on first login</p>
+              <h1 className="text-xl font-bold">Day-Wise Plan — {profile.role}</h1>
+              <p className="text-sm opacity-80">{department} department onboarding</p>
             </div>
             <div className="bg-card/20 backdrop-blur-sm rounded-lg px-3 py-1.5">
-              <span className="text-xs font-medium">AUTO-GENERATED</span>
+              <span className="text-xs font-medium">{department.toUpperCase()}</span>
             </div>
           </div>
         </div>
@@ -138,7 +97,7 @@ const DayPlan = () => {
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <Calendar className="w-5 h-5 text-info" />
-              <CardTitle className="text-base">Initial Setup</CardTitle>
+              <CardTitle className="text-base">Week 1 Schedule</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
@@ -175,7 +134,7 @@ const DayPlan = () => {
               <span className="text-sm">{completedCount}/{tasks.length} tasks</span>
             </div>
             <div className="h-3 bg-card/20 rounded-full overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-card transition-all duration-500 rounded-full"
                 style={{ width: `${progress}%` }}
               />
@@ -195,65 +154,70 @@ const DayPlan = () => {
               </div>
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <RefreshCw className="w-3 h-3" />
-                <span>Real-Time Adaptation</span>
+                <span>Role-Based Plan</span>
               </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            {tasks.map((task) => (
-              <div
-                key={task.id}
-                className={`flex items-start gap-3 p-4 rounded-xl border transition-all ${
-                  task.completed
-                    ? 'bg-success/5 border-success/20'
-                    : 'bg-card border-border hover:border-primary/30'
-                }`}
-              >
-                <Checkbox
-                  checked={task.completed}
-                  onCheckedChange={() => toggleTask(task.id)}
-                  className="mt-0.5"
-                />
-                <div className="flex-1">
-                  <p className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
-                    {task.title}
-                  </p>
-                  <div className="flex items-center gap-3 mt-1">
-                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Clock className="w-3 h-3" />
-                      {task.duration}
-                    </span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${
-                      task.priority === 'high' 
-                        ? 'bg-coral/10 text-coral' 
-                        : task.priority === 'medium'
-                        ? 'bg-warning/10 text-warning'
-                        : 'bg-muted text-muted-foreground'
-                    }`}>
-                      {task.priority}
-                    </span>
+            {tasks.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">No tasks for this day yet.</p>
+            ) : (
+              tasks.map((task) => (
+                <div
+                  key={task.id}
+                  className={`flex items-start gap-3 p-4 rounded-xl border transition-all ${
+                    task.completed
+                      ? 'bg-success/5 border-success/20'
+                      : 'bg-card border-border hover:border-primary/30'
+                  }`}
+                >
+                  <Checkbox
+                    checked={task.completed}
+                    onCheckedChange={() => toggleTask(task.id)}
+                    className="mt-0.5"
+                  />
+                  <div className="flex-1">
+                    <p className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
+                      {task.title}
+                    </p>
+                    <div className="flex items-center gap-3 mt-1">
+                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Clock className="w-3 h-3" />
+                        {task.duration}
+                      </span>
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full ${
+                          task.priority === 'high'
+                            ? 'bg-destructive/10 text-destructive'
+                            : task.priority === 'medium'
+                            ? 'bg-warning/10 text-warning'
+                            : 'bg-muted text-muted-foreground'
+                        }`}
+                      >
+                        {task.priority}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
 
-        {/* Dynamic Updates Card */}
         <Card className="mt-4 border-l-4 border-l-info shadow-sm">
           <CardContent className="py-4">
             <div className="flex items-center gap-2 mb-2">
               <RefreshCw className="w-4 h-4 text-info" />
-              <span className="font-medium text-sm">Dynamic Updates</span>
+              <span className="font-medium text-sm">Personalized for {profile.role}</span>
             </div>
             <div className="space-y-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-success" />
-                <span><strong className="text-foreground">Progress-Based:</strong> Plan adjusts based on user interaction</span>
+                <span>Tasks tailored to your <strong className="text-foreground">{department}</strong> department</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-info" />
-                <span><strong className="text-foreground">Real-Time Adaptation:</strong> AI learns from user behavior</span>
+                <span>Progress tracked across your 7-day onboarding</span>
               </div>
             </div>
           </CardContent>

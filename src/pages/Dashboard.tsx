@@ -18,7 +18,7 @@ import {
 import { toast } from 'sonner';
 
 const Dashboard = () => {
-  const { profile, isAuthenticated, loading, signOut, updateProfile, isAdmin, roleLoading } = useAuth();
+  const { profile, isAuthenticated, loading, signOut, isAdmin, roleLoading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,13 +28,9 @@ const Dashboard = () => {
     }
     
     if (profile?.is_first_login) {
-      toast.success('Welcome! Your Week-1 onboarding plan has been generated.', {
-        icon: <Sparkles className="w-4 h-4" />,
-        duration: 5000,
-      });
-      updateProfile({ is_first_login: false });
+      navigate('/profile-setup');
     }
-  }, [isAuthenticated, loading, navigate, profile?.is_first_login, updateProfile]);
+  }, [isAuthenticated, loading, navigate, profile?.is_first_login]);
 
   const handleLogout = async () => {
     await signOut();
