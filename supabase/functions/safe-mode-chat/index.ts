@@ -66,8 +66,16 @@ serve(async (req) => {
       );
     }
 
-    for (const msg of messages) {
-      if (!msg || typeof msg.content !== "string" || msg.content.length === 0 || msg.content.length > 4000) {
+    for (let i = 0; i < messages.length; i++) {
+      const msg = messages[i];
+      if (!msg || typeof msg.content !== "string") {
+        return new Response(
+          JSON.stringify({ error: "Invalid message format" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      msg.content = msg.content.trim();
+      if (msg.content.length === 0 || msg.content.length > 4000) {
         return new Response(
           JSON.stringify({ error: "Invalid message: content must be a string between 1 and 4000 characters" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
