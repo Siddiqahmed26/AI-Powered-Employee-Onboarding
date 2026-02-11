@@ -1,14 +1,17 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, FileUp } from 'lucide-react';
+import { Upload, FileUp, X, FileText } from 'lucide-react';
 
 interface UploadDocumentDialogProps {
   onUpload: (file: File, title: string, category: 'hr_policy' | 'tool_sop') => Promise<boolean>;
 }
+
+const ACCEPTED_TYPES = '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv';
+const MAX_SIZE_MB = 20;
 
 const UploadDocumentDialog = ({ onUpload }: UploadDocumentDialogProps) => {
   const [open, setOpen] = useState(false);
@@ -16,16 +19,39 @@ const UploadDocumentDialog = ({ onUpload }: UploadDocumentDialogProps) => {
   const [category, setCategory] = useState<'hr_policy' | 'tool_sop'>('hr_policy');
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = (f: File) => {
+    if (f.size > MAX_SIZE_MB * 1024 * 1024) {
+      return;
+    }
+    setFile(f);
+    if (!title.trim()) {
+      setTitle(f.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' '));
+    }
+  };
+
+  const handleDrag = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') setDragActive(true);
+    else if (e.type === 'dragleave') setDragActive(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files?.[0]) handleFile(e.dataTransfer.files[0]);
+  }, [title]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file || !title.trim()) return;
-
     setUploading(true);
     const success = await onUpload(file, title.trim(), category);
     setUploading(false);
-
     if (success) {
       setTitle('');
       setFile(null);
@@ -57,6 +83,56 @@ const UploadDocumentDialog = ({ onUpload }: UploadDocumentDialogProps) => {
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Drag & Drop Zone */}
+          <div
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className={`relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
+              dragActive
+                ? 'border-primary bg-primary/5'
+                : file
+                ? 'border-success bg-success/5'
+                : 'border-muted-foreground/30 hover:border-primary/50'
+            }`}
+          >
+            <input
+              type="file"
+              accept={ACCEPTED_TYPES}
+              ref={fileInputRef}
+              onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+              className="hidden"
+            />
+            {file ? (
+              <div className="flex items-center gap-3 justify-center">
+                <FileText className="w-8 h-8 text-success" />
+                <div className="text-left">
+                  <p className="text-sm font-medium truncate max-w-[200px]">{file.name}</p>
+                  <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={(e) => { e.stopPropagation(); setFile(null); }}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+                <p className="text-sm font-medium">Drag & drop or click to browse</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  PDF, Word, Excel, PowerPoint, TXT, CSV — up to {MAX_SIZE_MB}MB
+                </p>
+              </>
+            )}
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="doc-title">Document Title</Label>
             <Input
@@ -80,24 +156,6 @@ const UploadDocumentDialog = ({ onUpload }: UploadDocumentDialogProps) => {
                 <SelectItem value="tool_sop">Tool SOP</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="doc-file">File (PDF)</Label>
-            <Input
-              id="doc-file"
-              type="file"
-              accept=".pdf"
-              ref={fileInputRef}
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              required
-              className="cursor-pointer"
-            />
-            {file && (
-              <p className="text-xs text-muted-foreground">
-                {file.name} ({formatFileSize(file.size)})
-              </p>
-            )}
           </div>
 
           <Button
