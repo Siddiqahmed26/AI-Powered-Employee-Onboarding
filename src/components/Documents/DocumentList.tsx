@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Book, ClipboardList, FileText, Eye, Trash2, Download, FileWarning } from 'lucide-react';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 interface DocumentListProps {
   title: string;
@@ -12,7 +13,7 @@ interface DocumentListProps {
   documents: Document[];
   icon: 'hr' | 'sop';
   isAdmin: boolean;
-  getPublicUrl: (filePath: string) => string;
+  getSignedUrl: (filePath: string) => Promise<string | null>;
   onDelete: (doc: Document) => Promise<boolean>;
 }
 
@@ -22,10 +23,11 @@ const DocumentList = ({
   documents,
   icon,
   isAdmin,
-  getPublicUrl,
+  getSignedUrl,
   onDelete,
 }: DocumentListProps) => {
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
 
   const IconComponent = icon === 'hr' ? Book : ClipboardList;
@@ -35,6 +37,25 @@ const DocumentList = ({
     setDeleting(doc.id);
     await onDelete(doc);
     setDeleting(null);
+  };
+
+  const handlePreview = async (doc: Document) => {
+    const url = await getSignedUrl(doc.file_path);
+    if (url) {
+      setPreviewUrl(url);
+      setPreviewDoc(doc);
+    } else {
+      toast.error('Failed to load document preview');
+    }
+  };
+
+  const handleDownload = async (doc: Document) => {
+    const url = await getSignedUrl(doc.file_path);
+    if (url) {
+      window.open(url, '_blank');
+    } else {
+      toast.error('Failed to generate download link');
+    }
   };
 
   const formatFileSize = (bytes: number | null) => {
@@ -90,7 +111,7 @@ const DocumentList = ({
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8"
-                    onClick={() => setPreviewDoc(doc)}
+                    onClick={() => handlePreview(doc)}
                     title="Preview"
                   >
                     <Eye className="w-4 h-4" />
@@ -99,7 +120,7 @@ const DocumentList = ({
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8"
-                    onClick={() => window.open(getPublicUrl(doc.file_path), '_blank')}
+                    onClick={() => handleDownload(doc)}
                     title="Download"
                   >
                     <Download className="w-4 h-4" />
@@ -124,7 +145,7 @@ const DocumentList = ({
       </Card>
 
       {/* PDF Preview Dialog */}
-      <Dialog open={!!previewDoc} onOpenChange={() => setPreviewDoc(null)}>
+      <Dialog open={!!previewDoc} onOpenChange={() => { setPreviewDoc(null); setPreviewUrl(null); }}>
         <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 truncate">
@@ -132,11 +153,11 @@ const DocumentList = ({
               {previewDoc?.title}
             </DialogTitle>
           </DialogHeader>
-          {previewDoc && (
+          {previewUrl && (
             <iframe
-              src={getPublicUrl(previewDoc.file_path)}
+              src={previewUrl}
               className="flex-1 w-full rounded-lg border"
-              title={previewDoc.title}
+              title={previewDoc?.title}
             />
           )}
         </DialogContent>

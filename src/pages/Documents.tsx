@@ -25,7 +25,7 @@ const Documents = () => {
     loading,
     uploadDocument,
     deleteDocument,
-    getPublicUrl,
+    getSignedUrl,
   } = useDocuments();
 
   useEffect(() => {
@@ -115,7 +115,7 @@ const Documents = () => {
               documents={hrPolicies}
               icon="hr"
               isAdmin={isAdmin}
-              getPublicUrl={getPublicUrl}
+              getSignedUrl={getSignedUrl}
               onDelete={deleteDocument}
             />
             <DocumentList
@@ -124,7 +124,7 @@ const Documents = () => {
               documents={toolSops}
               icon="sop"
               isAdmin={isAdmin}
-              getPublicUrl={getPublicUrl}
+              getSignedUrl={getSignedUrl}
               onDelete={deleteDocument}
             />
           </>
