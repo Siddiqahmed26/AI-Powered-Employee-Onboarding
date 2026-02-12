@@ -39,12 +39,10 @@ export const useDocuments = () => {
 
   const uploadDocument = async (
     file: File,
-    title: string,
-    category: 'hr_policy' | 'tool_sop',
     userId: string
   ) => {
-    const fileExt = file.name.split('.').pop();
-    const filePath = `${category}/${Date.now()}_${file.name}`;
+    const title = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ');
+    const filePath = `uploads/${Date.now()}_${file.name}`;
 
     const { error: uploadError } = await supabase.storage
       .from('hr-docs')
@@ -58,7 +56,7 @@ export const useDocuments = () => {
 
     const { error: dbError } = await supabase.from('documents').insert({
       title,
-      category,
+      category: 'hr_policy',
       file_name: file.name,
       file_path: filePath,
       file_size: file.size,
@@ -108,12 +106,27 @@ export const useDocuments = () => {
   const getSignedUrl = async (filePath: string): Promise<string | null> => {
     const { data, error } = await supabase.storage
       .from('hr-docs')
-      .createSignedUrl(filePath, 3600); // 1 hour expiry
+      .createSignedUrl(filePath, 3600);
     if (error) {
       console.error('Error creating signed URL:', error);
       return null;
     }
     return data.signedUrl;
+  };
+
+  const renameDocument = async (doc: Document, newTitle: string): Promise<boolean> => {
+    const { error } = await supabase
+      .from('documents')
+      .update({ title: newTitle })
+      .eq('id', doc.id);
+    if (error) {
+      console.error('Rename error:', error);
+      toast.error('Failed to rename document');
+      return false;
+    }
+    toast.success('Document renamed');
+    await fetchDocuments();
+    return true;
   };
 
   const hrPolicies = documents.filter((d) => d.category === 'hr_policy');
@@ -126,6 +139,7 @@ export const useDocuments = () => {
     loading,
     uploadDocument,
     deleteDocument,
+    renameDocument,
     getSignedUrl,
     refetch: fetchDocuments,
   };

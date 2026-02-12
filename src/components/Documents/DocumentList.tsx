@@ -2,8 +2,9 @@ import { useState } from 'react';
 import type { Document } from '@/hooks/useDocuments';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Book, ClipboardList, FileText, Eye, Trash2, Download, FileWarning } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Book, ClipboardList, FileText, Eye, Trash2, Download, FileWarning, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -15,6 +16,7 @@ interface DocumentListProps {
   isAdmin: boolean;
   getSignedUrl: (filePath: string) => Promise<string | null>;
   onDelete: (doc: Document) => Promise<boolean>;
+  onRename: (doc: Document, newTitle: string) => Promise<boolean>;
 }
 
 const DocumentList = ({
@@ -25,10 +27,13 @@ const DocumentList = ({
   isAdmin,
   getSignedUrl,
   onDelete,
+  onRename,
 }: DocumentListProps) => {
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [renameDoc, setRenameDoc] = useState<Document | null>(null);
+  const [renameValue, setRenameValue] = useState('');
 
   const IconComponent = icon === 'hr' ? Book : ClipboardList;
   const colorClass = icon === 'hr' ? 'bg-info' : 'bg-purple';
@@ -56,6 +61,17 @@ const DocumentList = ({
     } else {
       toast.error('Failed to generate download link');
     }
+  };
+
+  const handleRenameOpen = (doc: Document) => {
+    setRenameDoc(doc);
+    setRenameValue(doc.title);
+  };
+
+  const handleRenameSubmit = async () => {
+    if (!renameDoc || !renameValue.trim()) return;
+    const success = await onRename(renameDoc, renameValue.trim());
+    if (success) setRenameDoc(null);
   };
 
   const formatFileSize = (bytes: number | null) => {
@@ -107,35 +123,28 @@ const DocumentList = ({
                   </p>
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => handlePreview(doc)}
-                    title="Preview"
-                  >
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handlePreview(doc)} title="Preview">
                     <Eye className="w-4 h-4" />
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => handleDownload(doc)}
-                    title="Download"
-                  >
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDownload(doc)} title="Download">
                     <Download className="w-4 h-4" />
                   </Button>
                   {isAdmin && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(doc)}
-                      disabled={deleting === doc.id}
-                      title="Delete"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleRenameOpen(doc)} title="Rename">
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        onClick={() => handleDelete(doc)}
+                        disabled={deleting === doc.id}
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
@@ -144,7 +153,7 @@ const DocumentList = ({
         </CardContent>
       </Card>
 
-      {/* PDF Preview Dialog */}
+      {/* Preview Dialog */}
       <Dialog open={!!previewDoc} onOpenChange={() => { setPreviewDoc(null); setPreviewUrl(null); }}>
         <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
           <DialogHeader>
@@ -154,12 +163,28 @@ const DocumentList = ({
             </DialogTitle>
           </DialogHeader>
           {previewUrl && (
-            <iframe
-              src={previewUrl}
-              className="flex-1 w-full rounded-lg border"
-              title={previewDoc?.title}
-            />
+            <iframe src={previewUrl} className="flex-1 w-full rounded-lg border" title={previewDoc?.title} />
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Rename Dialog */}
+      <Dialog open={!!renameDoc} onOpenChange={() => setRenameDoc(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Rename Document</DialogTitle>
+          </DialogHeader>
+          <Input
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            placeholder="New document name"
+            maxLength={200}
+            onKeyDown={(e) => e.key === 'Enter' && handleRenameSubmit()}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRenameDoc(null)}>Cancel</Button>
+            <Button onClick={handleRenameSubmit} disabled={!renameValue.trim()}>Save</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
