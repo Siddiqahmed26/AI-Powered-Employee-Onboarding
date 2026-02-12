@@ -12,6 +12,7 @@ import DayPlan from "./pages/DayPlan";
 import SafeMode from "./pages/SafeMode";
 import Documents from "./pages/Documents";
 import UserManagement from "./pages/UserManagement";
+import AdminTaskPlans from "./pages/AdminTaskPlans";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/safe-mode" element={<SafeMode />} />
             <Route path="/documents" element={<Documents />} />
             <Route path="/admin/users" element={<UserManagement />} />
+            <Route path="/admin/task-plans" element={<AdminTaskPlans />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

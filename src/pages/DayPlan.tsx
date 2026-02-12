@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { getDayPlan, TaskTemplate } from '@/data/dayPlans';
+import { TaskTemplate } from '@/data/dayPlans';
+import { useTaskTemplates, getEffectiveTasks } from '@/hooks/useTaskTemplates';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -31,16 +32,19 @@ const DayPlan = () => {
     }
   }, [isAuthenticated, loading, navigate, profile, currentDay]);
 
+  const { templates: dbTemplates, loading: templatesLoading } = useTaskTemplates(department);
+
   useEffect(() => {
+    if (templatesLoading) return;
     const storageKey = `tasks_${department}_day_${selectedDay}`;
     const storedTasks = localStorage.getItem(storageKey);
     if (storedTasks) {
       setTasks(JSON.parse(storedTasks));
     } else {
-      const templates = getDayPlan(department, selectedDay);
-      setTasks(templates.map((t) => ({ ...t, completed: false })));
+      const effective = getEffectiveTasks(dbTemplates, department, selectedDay);
+      setTasks(effective.map((t) => ({ ...t, completed: false })));
     }
-  }, [selectedDay, department]);
+  }, [selectedDay, department, dbTemplates, templatesLoading]);
 
   const toggleTask = (taskId: string) => {
     const updated = tasks.map((t) =>

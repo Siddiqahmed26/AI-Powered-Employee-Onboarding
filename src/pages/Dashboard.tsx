@@ -104,15 +104,26 @@ const Dashboard = () => {
                 <span className="text-sm">{role}</span>
               </div>
               {isAdmin && (
-                <Button 
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate('/admin/users')}
-                  className="text-primary-foreground hover:bg-card/20"
-                >
-                  <Users className="w-4 h-4 mr-2" />
-                  Manage Users
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/admin/users')}
+                    className="text-primary-foreground hover:bg-card/20"
+                  >
+                    <Users className="w-4 h-4 mr-2" />
+                    Users
+                  </Button>
+                  <Button 
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/admin/task-plans')}
+                    className="text-primary-foreground hover:bg-card/20"
+                  >
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Task Plans
+                  </Button>
+                </div>
               )}
               <Button 
                 variant="ghost" 
