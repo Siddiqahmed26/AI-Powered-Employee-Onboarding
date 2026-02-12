@@ -20,11 +20,11 @@ const Documents = () => {
   const { isAuthenticated, user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const {
-    hrPolicies,
-    toolSops,
+    documents,
     loading,
     uploadDocument,
     deleteDocument,
+    renameDocument,
     getSignedUrl,
   } = useDocuments();
 
@@ -34,9 +34,9 @@ const Documents = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  const handleUpload = async (file: File, title: string, category: 'hr_policy' | 'tool_sop') => {
+  const handleUpload = async (file: File) => {
     if (!user) return false;
-    return uploadDocument(file, title, category, user.id);
+    return uploadDocument(file, user.id);
   };
 
   const responseProtocol = [
@@ -110,22 +110,14 @@ const Documents = () => {
         ) : (
           <>
             <DocumentList
-              title="HR Policy PDFs"
-              description="Employee handbook, benefits, company policies"
-              documents={hrPolicies}
+              title="All Documents"
+              description="Company policies, SOPs, and resources"
+              documents={documents}
               icon="hr"
               isAdmin={isAdmin}
               getSignedUrl={getSignedUrl}
               onDelete={deleteDocument}
-            />
-            <DocumentList
-              title="Tool SOPs"
-              description="Standard operating procedures"
-              documents={toolSops}
-              icon="sop"
-              isAdmin={isAdmin}
-              getSignedUrl={getSignedUrl}
-              onDelete={deleteDocument}
+              onRename={renameDocument}
             />
           </>
         )}
