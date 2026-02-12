@@ -86,6 +86,42 @@ export type Database = {
         }
         Relationships: []
       }
+      task_templates: {
+        Row: {
+          created_at: string
+          day_number: number
+          department: string
+          duration: string
+          id: string
+          priority: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_number: number
+          department: string
+          duration: string
+          id?: string
+          priority?: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_number?: number
+          department?: string
+          duration?: string
+          id?: string
+          priority?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
