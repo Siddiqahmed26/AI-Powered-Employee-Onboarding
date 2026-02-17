@@ -13,6 +13,7 @@ import SafeMode from "./pages/SafeMode";
 import Documents from "./pages/Documents";
 import UserManagement from "./pages/UserManagement";
 import AdminTaskPlans from "./pages/AdminTaskPlans";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/documents" element={<Documents />} />
             <Route path="/admin/users" element={<UserManagement />} />
             <Route path="/admin/task-plans" element={<AdminTaskPlans />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
