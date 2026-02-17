@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LogIn, UserPlus, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import VerifyEmail from './VerifyEmail';
 
 const emailSchema = z.string().trim().email({ message: "Invalid email address" }).max(255);
 const passwordSchema = z.string().min(6, { message: "Password must be at least 6 characters" });
@@ -20,7 +21,12 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  if (pendingVerificationEmail) {
+    return <VerifyEmail email={pendingVerificationEmail} />;
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,13 +43,17 @@ const Auth = () => {
       }
     }
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) {
       toast.error(error.message);
+    } else if (data.user && !data.user.email_confirmed_at) {
+      // User exists but hasn't verified their email yet
+      await supabase.auth.signOut();
+      setPendingVerificationEmail(email);
     } else {
       toast.success('Welcome back! Let\'s continue your onboarding journey.');
       navigate('/dashboard');
@@ -87,8 +97,7 @@ const Auth = () => {
         toast.error(error.message);
       }
     } else {
-      toast.success('Account created! Welcome to your onboarding journey.');
-      navigate('/dashboard');
+      setPendingVerificationEmail(email);
     }
     setIsLoading(false);
   };
