@@ -12,6 +12,17 @@ interface Profile {
   role: string;
   current_day: number;
   is_first_login: boolean;
+  // Extended enterprise fields
+  company_id?: string | null;
+  manager_name?: string | null;
+  manager_message?: string | null;
+  avatar_url?: string | null;
+  bio?: string | null;
+  skills?: string[] | null;
+  location?: string | null;
+  start_date?: string | null;
+  xp_points?: number;
+  badges?: string[];
 }
 
 interface AuthContextType {

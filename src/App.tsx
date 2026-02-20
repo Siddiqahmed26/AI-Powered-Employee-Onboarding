@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import Welcome from "./pages/Welcome";
 import ProfileSetup from "./pages/ProfileSetup";
 import ContextChat from "./pages/ContextChat";
 import DayPlan from "./pages/DayPlan";
@@ -28,6 +29,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Auth />} />
             <Route path="/profile-setup" element={<ProfileSetup />} />
+            <Route path="/welcome" element={<Welcome />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/chat" element={<ContextChat />} />
             <Route path="/day-plan" element={<DayPlan />} />
