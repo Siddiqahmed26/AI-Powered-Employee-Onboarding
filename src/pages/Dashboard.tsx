@@ -13,13 +13,17 @@ import {
   User,
   Sparkles,
   Loader2,
-  Users
+  Users,
+  PartyPopper
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { NotificationBell } from '@/components/Notifications/NotificationBell';
+import { useNotifications } from '@/hooks/useNotifications';
 
 const Dashboard = () => {
-  const { profile, isAuthenticated, loading, signOut, isAdmin, roleLoading } = useAuth();
+  const { profile, user, isAuthenticated, loading, signOut, isAdmin, roleLoading } = useAuth();
   const navigate = useNavigate();
+  const { notifications, unreadCount, markRead, markAllRead } = useNotifications(user?.id);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -98,11 +102,20 @@ const Dashboard = () => {
                 <p className="text-sm opacity-80">Central navigation hub connecting all onboarding features</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               <div className="hidden sm:flex items-center gap-2 bg-card/10 backdrop-blur-sm rounded-lg px-3 py-2">
                 <User className="w-4 h-4" />
                 <span className="text-sm">{role}</span>
               </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/welcome')}
+                className="text-primary-foreground hover:bg-card/20 hidden sm:flex"
+              >
+                <PartyPopper className="w-4 h-4 mr-2" />
+                Welcome Center
+              </Button>
               {isAdmin && (
                 <div className="flex items-center gap-2">
                   <Button 
@@ -125,6 +138,12 @@ const Dashboard = () => {
                   </Button>
                 </div>
               )}
+              <NotificationBell
+                notifications={notifications}
+                unreadCount={unreadCount}
+                onMarkRead={markRead}
+                onMarkAllRead={markAllRead}
+              />
               <Button 
                 variant="ghost" 
                 size="icon"

@@ -14,6 +14,128 @@ export type Database = {
   }
   public: {
     Tables: {
+      announcements: {
+        Row: {
+          author_id: string | null
+          company_id: string | null
+          content: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          pinned: boolean | null
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          company_id?: string | null
+          content: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          pinned?: boolean | null
+          title: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          company_id?: string | null
+          content?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          pinned?: boolean | null
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcements_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          resource_id: string | null
+          resource_type: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      companies: {
+        Row: {
+          created_at: string
+          id: string
+          industry: string | null
+          logo_url: string | null
+          name: string
+          onboarding_days: number | null
+          primary_color: string | null
+          size_range: string | null
+          slug: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          industry?: string | null
+          logo_url?: string | null
+          name: string
+          onboarding_days?: number | null
+          primary_color?: string | null
+          size_range?: string | null
+          slug: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          industry?: string | null
+          logo_url?: string | null
+          name?: string
+          onboarding_days?: number | null
+          primary_color?: string | null
+          size_range?: string | null
+          slug?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           category: string
@@ -47,44 +169,115 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string
+          id: string
+          message: string
+          read: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean | null
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
+          avatar_url: string | null
+          badges: string[] | null
+          bio: string | null
+          company_id: string | null
           created_at: string
           current_day: number | null
           department: string | null
           full_name: string | null
           id: string
           is_first_login: boolean | null
+          location: string | null
+          manager_message: string | null
+          manager_name: string | null
           role: string | null
+          skills: string[] | null
+          start_date: string | null
           updated_at: string
           user_id: string
           username: string | null
+          xp_points: number | null
         }
         Insert: {
+          avatar_url?: string | null
+          badges?: string[] | null
+          bio?: string | null
+          company_id?: string | null
           created_at?: string
           current_day?: number | null
           department?: string | null
           full_name?: string | null
           id?: string
           is_first_login?: boolean | null
+          location?: string | null
+          manager_message?: string | null
+          manager_name?: string | null
           role?: string | null
+          skills?: string[] | null
+          start_date?: string | null
           updated_at?: string
           user_id: string
           username?: string | null
+          xp_points?: number | null
         }
         Update: {
+          avatar_url?: string | null
+          badges?: string[] | null
+          bio?: string | null
+          company_id?: string | null
           created_at?: string
           current_day?: number | null
           department?: string | null
           full_name?: string | null
           id?: string
           is_first_login?: boolean | null
+          location?: string | null
+          manager_message?: string | null
+          manager_name?: string | null
           role?: string | null
+          skills?: string[] | null
+          start_date?: string | null
           updated_at?: string
           user_id?: string
           username?: string | null
+          xp_points?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       task_templates: {
         Row: {

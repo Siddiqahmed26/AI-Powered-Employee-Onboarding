@@ -51,7 +51,7 @@ const ProfileSetup = () => {
     setSaving(true);
     await updateProfile({ department, role, is_first_login: false });
     toast.success('Profile set up! Your personalized onboarding plan is ready.', { icon: <Sparkles className="w-4 h-4" /> });
-    navigate('/dashboard');
+    navigate('/welcome');
     setSaving(false);
   };
 
