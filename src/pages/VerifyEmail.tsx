@@ -8,9 +8,10 @@ import { useNavigate } from 'react-router-dom';
 
 interface VerifyEmailProps {
   email?: string;
+  onBackToSignIn?: () => void;
 }
 
-const VerifyEmail = ({ email }: VerifyEmailProps) => {
+const VerifyEmail = ({ email, onBackToSignIn }: VerifyEmailProps) => {
   const [resending, setResending] = useState(false);
   const navigate = useNavigate();
 
@@ -72,7 +73,13 @@ const VerifyEmail = ({ email }: VerifyEmailProps) => {
             <Button
               variant="ghost"
               className="w-full"
-              onClick={() => navigate('/')}
+              onClick={() => {
+                if (onBackToSignIn) {
+                  onBackToSignIn();
+                } else {
+                  navigate('/');
+                }
+              }}
             >
               Back to Sign In
             </Button>

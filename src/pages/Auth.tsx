@@ -41,7 +41,7 @@ const Auth = () => {
   }, [loading, isAuthenticated, profile, navigate]);
 
   if (pendingVerificationEmail) {
-    return <VerifyEmail email={pendingVerificationEmail} />;
+    return <VerifyEmail email={pendingVerificationEmail} onBackToSignIn={() => setPendingVerificationEmail(null)} />;
   }
 
   const handleLogin = async (e: React.FormEvent) => {
