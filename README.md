@@ -2,11 +2,11 @@
 
 **Live Demo**: [https://ai-powered-employee-onboarding.vercel.app/](https://ai-powered-employee-onboarding.vercel.app/)
 
-Welcome to the **Goal Navigator** application! This platform is designed to streamline internal communications, modernize the new joinee onboarding flow, and keep organizational day-to-day operations focused and accessible.
+Welcome to the **AI-Powered Employee Onboarding** application! This platform is designed to streamline internal communications, modernize the new joinee onboarding flow, and keep organizational day-to-day operations focused and accessible.
 
 ## 🚀 Purpose
 
-When successfully hosted, the Goal Navigator acts as a unified hub tailored for employees to orient themselves within the company ecosystem. Its primary capabilities include:
+When successfully hosted, the AI-Powered Employee Onboarding acts as a unified hub tailored for employees to orient themselves within the company ecosystem. Its primary capabilities include:
 
 - **AI-Driven Onboarding**: An interactive AI chat bot that greets new joinees, assesses their role & department, and dynamically curates their onboarding experience.
 - **Dynamic Dashboards**: Centralizing important metrics, outstanding daily tasks, and unread chat notifications.
