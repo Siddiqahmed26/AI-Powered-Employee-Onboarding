@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Bell, Check, CheckCheck, Info, AlertTriangle, Megaphone, Sparkles, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,11 +28,33 @@ interface Props {
 
 export const NotificationBell = ({ notifications, unreadCount, unreadChatCount = 0, onChatClick, onMarkRead, onMarkAllRead }: Props) => {
   const [open, setOpen] = useState(false);
+  const [lastSeenChatCount, setLastSeenChatCount] = useState(() => {
+    return parseInt(localStorage.getItem('lastSeenChatCount') || '0', 10);
+  });
 
-  const totalUnread = unreadCount + unreadChatCount;
+  useEffect(() => {
+    // If the actual unread count drops (they read some messages in the directory),
+    // sync our local tracking downwards so we don't end up with negative math.
+    if (unreadChatCount < lastSeenChatCount) {
+      setLastSeenChatCount(unreadChatCount);
+      localStorage.setItem('lastSeenChatCount', unreadChatCount.toString());
+    }
+  }, [unreadChatCount, lastSeenChatCount]);
+
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    // When they open the menu, we mark the *current* chat count as seen
+    if (newOpen && unreadChatCount > lastSeenChatCount) {
+      setLastSeenChatCount(unreadChatCount);
+      localStorage.setItem('lastSeenChatCount', unreadChatCount.toString());
+    }
+  };
+
+  const effectiveUnreadChatCount = Math.max(0, unreadChatCount - lastSeenChatCount);
+  const totalUnread = unreadCount + effectiveUnreadChatCount;
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative text-primary-foreground hover:bg-card/20">
           <Bell className="w-5 h-5" />
