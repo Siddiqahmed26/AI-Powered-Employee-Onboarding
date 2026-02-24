@@ -161,20 +161,11 @@ const Dashboard = () => {
                   </Button>
                 </div>
               )}
-              {unreadChatCount > 0 && (
-                <Button
-                  variant="destructive"
-                  size="default"
-                  onClick={() => navigate('/people')}
-                  className="bg-red-700 hover:bg-red-800 text-white animate-bounce shadow-xl shadow-red-900/50 font-bold px-4"
-                >
-                  <MessageSquare className="w-5 h-5 mr-2" />
-                  {unreadChatCount} New Message{unreadChatCount !== 1 && 's'}
-                </Button>
-              )}
               <NotificationBell
                 notifications={notifications}
                 unreadCount={unreadCount}
+                unreadChatCount={unreadChatCount}
+                onChatClick={() => navigate('/people')}
                 onMarkRead={markRead}
                 onMarkAllRead={markAllRead}
               />

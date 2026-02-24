@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, Check, CheckCheck, Info, AlertTriangle, Megaphone, Sparkles } from 'lucide-react';
+import { Bell, Check, CheckCheck, Info, AlertTriangle, Megaphone, Sparkles, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -20,21 +20,25 @@ const typeIcon: Record<string, React.ReactNode> = {
 interface Props {
   notifications: Notification[];
   unreadCount: number;
+  unreadChatCount?: number;
+  onChatClick?: () => void;
   onMarkRead: (id: string) => void;
   onMarkAllRead: () => void;
 }
 
-export const NotificationBell = ({ notifications, unreadCount, onMarkRead, onMarkAllRead }: Props) => {
+export const NotificationBell = ({ notifications, unreadCount, unreadChatCount = 0, onChatClick, onMarkRead, onMarkAllRead }: Props) => {
   const [open, setOpen] = useState(false);
+
+  const totalUnread = unreadCount + unreadChatCount;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative text-primary-foreground hover:bg-card/20">
           <Bell className="w-5 h-5" />
-          {unreadCount > 0 && (
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-warning text-warning-foreground text-xs">
-              {unreadCount > 9 ? '9+' : unreadCount}
+          {totalUnread > 0 && (
+            <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-red-600 text-white text-xs animate-bounce shadow-lg">
+              {totalUnread > 9 ? '9+' : totalUnread}
             </Badge>
           )}
         </Button>
@@ -50,13 +54,36 @@ export const NotificationBell = ({ notifications, unreadCount, onMarkRead, onMar
           )}
         </div>
         <ScrollArea className="h-80">
-          {notifications.length === 0 ? (
+          {notifications.length === 0 && unreadChatCount === 0 ? (
             <div className="flex flex-col items-center justify-center h-full py-8 text-muted-foreground">
               <Bell className="w-8 h-8 mb-2 opacity-30" />
               <p className="text-sm">No notifications yet</p>
             </div>
           ) : (
             <div className="divide-y">
+              {unreadChatCount > 0 && (
+                <button
+                  key="chat-notification"
+                  onClick={() => {
+                    if (onChatClick) onChatClick();
+                    setOpen(false);
+                  }}
+                  className="w-full text-left p-4 hover:bg-muted/50 transition-colors flex gap-3 bg-red-500/10 cursor-pointer"
+                >
+                  <div className="mt-0.5 flex-shrink-0">
+                    <MessageSquare className="w-4 h-4 text-red-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-red-600 leading-tight">
+                      Unread Messages
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                      You have {unreadChatCount} unread message{unreadChatCount !== 1 && 's'} waiting. Click to open the People Directory.
+                    </p>
+                  </div>
+                  <div className="w-2 h-2 rounded-full bg-red-600 mt-1.5 flex-shrink-0 animate-pulse" />
+                </button>
+              )}
               {notifications.map((n) => (
                 <button
                   key={n.id}
