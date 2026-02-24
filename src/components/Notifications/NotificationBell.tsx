@@ -21,15 +21,19 @@ interface Props {
   notifications: Notification[];
   unreadCount: number;
   unreadChatCount?: number;
+  userId?: string;
   onChatClick?: () => void;
   onMarkRead: (id: string) => void;
   onMarkAllRead: () => void;
 }
 
-export const NotificationBell = ({ notifications, unreadCount, unreadChatCount = 0, onChatClick, onMarkRead, onMarkAllRead }: Props) => {
+export const NotificationBell = ({ notifications, unreadCount, unreadChatCount = 0, userId, onChatClick, onMarkRead, onMarkAllRead }: Props) => {
   const [open, setOpen] = useState(false);
+
+  const storageKey = userId ? `lastSeenChatCount_${userId}` : 'lastSeenChatCount';
+
   const [lastSeenChatCount, setLastSeenChatCount] = useState(() => {
-    return parseInt(localStorage.getItem('lastSeenChatCount') || '0', 10);
+    return parseInt(localStorage.getItem(storageKey) || '0', 10);
   });
 
   useEffect(() => {
@@ -37,16 +41,16 @@ export const NotificationBell = ({ notifications, unreadCount, unreadChatCount =
     // sync our local tracking downwards so we don't end up with negative math.
     if (unreadChatCount < lastSeenChatCount) {
       setLastSeenChatCount(unreadChatCount);
-      localStorage.setItem('lastSeenChatCount', unreadChatCount.toString());
+      localStorage.setItem(storageKey, unreadChatCount.toString());
     }
-  }, [unreadChatCount, lastSeenChatCount]);
+  }, [unreadChatCount, lastSeenChatCount, storageKey]);
 
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen);
     // When they open the menu, we mark the *current* chat count as seen
     if (newOpen && unreadChatCount > lastSeenChatCount) {
       setLastSeenChatCount(unreadChatCount);
-      localStorage.setItem('lastSeenChatCount', unreadChatCount.toString());
+      localStorage.setItem(storageKey, unreadChatCount.toString());
     }
   };
 

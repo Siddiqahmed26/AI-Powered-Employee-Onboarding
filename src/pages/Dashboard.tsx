@@ -165,6 +165,7 @@ const Dashboard = () => {
                 notifications={notifications}
                 unreadCount={unreadCount}
                 unreadChatCount={unreadChatCount}
+                userId={user?.id}
                 onChatClick={() => navigate('/people')}
                 onMarkRead={markRead}
                 onMarkAllRead={markAllRead}
