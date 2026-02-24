@@ -1,73 +1,57 @@
-# Welcome to your Lovable project
+# AI-Powered Employee Onboarding & Goal Navigator
 
-## Project info
+**Live Demo**: [https://ai-powered-employee-onboarding.vercel.app/](https://ai-powered-employee-onboarding.vercel.app/)
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Welcome to the **Goal Navigator** application! This platform is designed to streamline internal communications, modernize the new joinee onboarding flow, and keep organizational day-to-day operations focused and accessible.
 
-## How can I edit this code?
+## 🚀 Purpose
 
-There are several ways of editing your application.
+When successfully hosted, the Goal Navigator acts as a unified hub tailored for employees to orient themselves within the company ecosystem. Its primary capabilities include:
 
-**Use Lovable**
+- **AI-Driven Onboarding**: An interactive AI chat bot that greets new joinees, assesses their role & department, and dynamically curates their onboarding experience.
+- **Dynamic Dashboards**: Centralizing important metrics, outstanding daily tasks, and unread chat notifications.
+- **People Directory**: A beautifully crafted colleague repository where employees can discover teammates, view comprehensive profiles (skills, roles, locations, new joinee badges), and effortlessly draft "Coffee Chat" networking emails to them.
+- **Internal Messaging (Context Chat)**: Persistent, database-supported messaging channels between colleagues to promote communication across departments seamlessly.
+- **Day Plans & Goal Tracking**: Keep track of daily checklists and ongoing projects with integrated persistence.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## 📸 Snapshots
 
-Changes made via Lovable will be committed automatically to this repo.
+*Replace the placeholders below with live screenshots of your application hosted on Vercel!*
 
-**Use your preferred IDE**
+### The Dashboard
+![Dashboard Screenshot Link](https://placehold.co/800x400?text=Replace+with+Dashboard+Screenshot)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### People Directory
+![People Directory Screenshot Link](https://placehold.co/800x400?text=Replace+with+People+Directory+Screenshot)
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Public Profiles
+![Public Profile Screenshot Link](https://placehold.co/800x400?text=Replace+with+Profile+Screenshot)
 
-Follow these steps:
+### Integrated Context Chats
+![Chat Interface Screenshot Link](https://placehold.co/800x400?text=Replace+with+Chat+Window+Screenshot)
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+---
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 🛠️ Technology Stack
+- **Frontend**: React, TypeScript, Vite
+- **Styling**: TailwindCSS, Shadcn/UI Component Library
+- **Database & Auth**: Supabase (PostgreSQL)
+- **Deployment Strategy**: Vercel
 
-# Step 3: Install the necessary dependencies.
-npm i
+## ⚙️ Getting Started
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### Local Development
+To run this project locally on your machine:
+```bash
+# Install dependencies
+npm install
+
+# Start the Vite development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+### Hosting on Vercel
+The repository is primed for continuous deployment on Vercel. 
+1. Link your GitHub repository to your Vercel account. 
+2. Ensure you have injected your local `.env` variables (like your `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`) into the Vercel Environment Variables console. 
+3. Deploy!
