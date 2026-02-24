@@ -296,72 +296,71 @@ const People = () => {
             onClick={() => navigate(`/profile/${person.id}`)}
         >
             <div className={`h-2 ${person.color}`} />
-            <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                    <div className={`relative w-16 h-16 rounded-2xl ${person.color} flex items-center justify-center text-primary-foreground text-xl font-bold flex-shrink-0 shadow-sm overflow-hidden`}>
-                        {person.avatarUrl ? (
-                            <img src={person.avatarUrl} alt={person.name} className="w-full h-full object-cover" />
-                        ) : (
-                            person.initials
-                        )}
+            <CardContent className="p-6 flex flex-col items-center text-center">
+                <div className={`relative w-24 h-24 mb-4 rounded-full ${person.color} flex items-center justify-center text-primary-foreground text-3xl font-bold flex-shrink-0 shadow-lg overflow-hidden`}>
+                    {person.avatarUrl ? (
+                        <img src={person.avatarUrl} alt={person.name} className="w-full h-full object-cover" />
+                    ) : (
+                        person.initials
+                    )}
 
-                        {/* Red Notification Badge */}
-                        {person.unreadCount > 0 && (
-                            <div className="absolute -top-3 -right-3 bg-red-700 text-white text-sm font-bold w-8 h-8 rounded-full flex items-center justify-center shadow-lg shadow-red-900/50 animate-bounce border-2 border-background z-10 transition-all duration-300">
-                                {person.unreadCount}
-                            </div>
-                        )}
+                    {/* Red Notification Badge */}
+                    {person.unreadCount > 0 && (
+                        <div className="absolute -top-2 -right-2 bg-red-700 text-white text-sm font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-lg animate-bounce border-2 border-background z-10 transition-all duration-300">
+                            {person.unreadCount}
+                        </div>
+                    )}
 
-                        {person.isNewJoinee && !person.unreadCount && (
-                            <div className="absolute -bottom-2 -right-2 bg-background rounded-full p-1 shadow-sm">
-                                <Sparkles className="w-4 h-4 text-pink-500" />
-                            </div>
-                        )}
+                    {person.isNewJoinee && !person.unreadCount && (
+                        <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-1.5 shadow-sm">
+                            <Sparkles className="w-5 h-5 text-pink-500" />
+                        </div>
+                    )}
+                </div>
+
+                <h3 className="font-semibold text-xl truncate w-full px-2">{person.name}</h3>
+                <p className="text-sm text-primary font-medium mt-1 uppercase tracking-wider">{person.role}</p>
+
+                <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground mt-3 w-full">
+                    <div className="flex items-center gap-1.5">
+                        <Briefcase className="w-3.5 h-3.5" />
+                        <span className="truncate max-w-[120px]">{person.department}</span>
                     </div>
-                    <div className="flex-1 min-w-0 pt-1">
-                        <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-lg truncate">{person.name}</h3>
-                        </div>
-                        <p className="text-sm text-primary font-medium">{person.role}</p>
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2">
-                            <Briefcase className="w-3.5 h-3.5" />
-                            {person.department}
-                        </div>
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
-                            <MapPin className="w-3.5 h-3.5" />
-                            {person.location}
-                        </div>
+                    <span className="hidden sm:inline">•</span>
+                    <div className="flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5" />
+                        <span className="truncate max-w-[120px]">{person.location}</span>
                     </div>
                 </div>
 
-                <div className="mt-4 text-sm text-muted-foreground line-clamp-2 italic">
+                <div className="mt-4 text-sm text-muted-foreground line-clamp-2 italic h-10 flex items-center justify-center w-full px-2">
                     "{person.bio}"
                 </div>
 
-                <div className="mt-4 flex flex-wrap gap-1.5">
+                <div className="mt-4 flex flex-wrap justify-center gap-1.5 w-full">
                     {person.skills.map(skill => (
-                        <span key={skill} className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                        <span key={skill} className="text-[10px] font-medium px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
                             {skill}
                         </span>
                     ))}
                 </div>
 
-                <div className="mt-6 flex gap-2">
+                <div className="mt-6 flex flex-col w-full gap-2 mt-auto pt-4 border-t border-border/50">
                     <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
-                        className="flex-1 gap-2 border-primary/20 hover:bg-primary/5"
+                        className="w-full hover:bg-primary/5 text-muted-foreground hover:text-primary transition-colors"
                         onClick={(e) => handleCoffeeChat(e, person)}
                     >
-                        <Coffee className="w-4 h-4 text-primary" /> Coffee Chat
+                        <Coffee className="w-4 h-4 mr-2" /> Coffee Chat
                     </Button>
                     <Button
                         variant={person.unreadCount > 0 ? "destructive" : "secondary"}
                         size="sm"
-                        className={`px-4 ${person.unreadCount > 0 ? 'bg-red-600 hover:bg-red-700 text-white animate-pulse shadow-md shadow-red-900/20' : ''}`}
+                        className={`w-full ${person.unreadCount > 0 ? 'bg-red-600 hover:bg-red-700 text-white animate-pulse shadow-md shadow-red-900/20' : 'bg-primary text-primary-foreground hover:opacity-90'}`}
                         onClick={(e) => openChat(e, person)}
                     >
-                        <MessageSquare className="w-4 h-4" /> Message
+                        <MessageSquare className="w-4 h-4 mr-2" /> Message
                     </Button>
                 </div>
             </CardContent>
