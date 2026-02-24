@@ -1,4 +1,4 @@
-# AI-Powered Employee Onboarding & Goal Navigator
+# AI-Powered Employee Onboarding
 
 **Live Demo**: [https://ai-powered-employee-onboarding.vercel.app/](https://ai-powered-employee-onboarding.vercel.app/)
 
