@@ -1,30 +1,73 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- TODO: Set the document title to the name of your application -->
-    <title>AI-Powered Employee Onboarding</title>
-    <meta name="description" content="AI-Powered Employee Onboarding">
-    <meta name="author" content="Lovable" />
 
-    <!-- TODO: Update og:title to match your application name -->
-    
-    
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@Lovable" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-    <meta property="og:title" content="AI-Powered Employee Onboarding">
+  <!-- Antigravity Preview configuration -->
+  <script>
+    if (window.location.hostname === 'localhost' && window.location.port && window.location.port !== '8080') {
+      const checkServer = async () => {
+        try {
+          await fetch('http://localhost:8080/', { mode: 'no-cors' });
+
+          // Try multiple methods to trigger the browser opening to bypass some IDE restrictions
+          window.open('http://localhost:8080/', '_blank');
+          const a = document.createElement('a');
+          a.href = 'http://localhost:8080/';
+          a.target = '_blank';
+          a.click();
+
+          document.addEventListener('DOMContentLoaded', () => {
+            document.body.innerHTML = `
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;text-align:center;background:#1e1e2e;color:#cdd6f4;">
+                  <h2 style="font-size:24px;font-weight:600;margin-bottom:20px;">Your App is Ready!</h2>
+                  <p style="margin-bottom: 30px; font-size: 16px;">If your browser didn't open automatically (due to popup blockers), click the button below:</p>
+                  <a href="http://localhost:8080/" target="_blank" style="background-color: #89b4fa; color: #1e1e2e; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 18px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: transform 0.2s;">
+                    🚀 Open App in Chrome
+                  </a>
+                </div>
+              `;
+          });
+        } catch (e) {
+          document.addEventListener('DOMContentLoaded', () => {
+            document.body.innerHTML = `
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;text-align:center;background:#1e1e2e;color:#cdd6f4;">
+                  <h2 style="font-weight:600;margin-bottom:10px;">The Vite Development Server is not running</h2>
+                  <p>Please run <code style="background:#313244;padding:4px 8px;border-radius:4px;color:#a6e3a1;">npm run dev</code> or <code style="background:#313244;padding:4px 8px;border-radius:4px;color:#a6e3a1;">npm run go-live</code> in the terminal first.</p>
+                  <p style="margin-top:20px;font-size:0.9em;color:#a6adc8;">Then refresh this preview or click the preview button again.</p>
+                </div>
+              `;
+          });
+        }
+      };
+      checkServer();
+    }
+  </script>
+  <!-- TODO: Set the document title to the name of your application -->
+  <title>AI-Powered Employee Onboarding</title>
+  <meta name="description" content="AI-Powered Employee Onboarding">
+  <meta name="author" content="Lovable" />
+
+  <!-- TODO: Update og:title to match your application name -->
+
+
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@Lovable" />
+  <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+  <meta property="og:title" content="AI-Powered Employee Onboarding">
   <meta name="twitter:title" content="AI-Powered Employee Onboarding">
   <meta property="og:description" content="AI-Powered Employee Onboarding">
   <meta name="twitter:description" content="AI-Powered Employee Onboarding">
 </head>
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>

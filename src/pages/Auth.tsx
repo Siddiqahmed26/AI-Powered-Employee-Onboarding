@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,7 +27,18 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string | null>(null);
   const [view, setView] = useState<AuthView>('main');
+  const { loading, isAuthenticated, profile } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      if (profile && (!profile.department || !profile.role || profile.is_first_login)) {
+        navigate('/profile-setup');
+      } else if (profile) {
+        navigate('/welcome');
+      }
+    }
+  }, [loading, isAuthenticated, profile, navigate]);
 
   if (pendingVerificationEmail) {
     return <VerifyEmail email={pendingVerificationEmail} />;
@@ -56,7 +68,6 @@ const Auth = () => {
       setPendingVerificationEmail(email);
     } else {
       toast.success("Welcome back! Let's continue your onboarding journey.");
-      navigate('/dashboard');
     }
     setIsLoading(false);
   };

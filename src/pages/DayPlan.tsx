@@ -35,8 +35,8 @@ const DayPlan = () => {
   const { templates: dbTemplates, loading: templatesLoading } = useTaskTemplates(department);
 
   useEffect(() => {
-    if (templatesLoading) return;
-    const storageKey = `tasks_${department}_day_${selectedDay}`;
+    if (templatesLoading || !profile) return;
+    const storageKey = `tasks_${profile.id}_${department}_day_${selectedDay}`;
     const storedTasks = localStorage.getItem(storageKey);
     if (storedTasks) {
       setTasks(JSON.parse(storedTasks));
@@ -47,11 +47,12 @@ const DayPlan = () => {
   }, [selectedDay, department, dbTemplates, templatesLoading]);
 
   const toggleTask = (taskId: string) => {
+    if (!profile) return;
     const updated = tasks.map((t) =>
       t.id === taskId ? { ...t, completed: !t.completed } : t
     );
     setTasks(updated);
-    localStorage.setItem(`tasks_${department}_day_${selectedDay}`, JSON.stringify(updated));
+    localStorage.setItem(`tasks_${profile.id}_${department}_day_${selectedDay}`, JSON.stringify(updated));
 
     const task = tasks.find((t) => t.id === taskId);
     if (task && !task.completed) {
@@ -68,6 +69,27 @@ const DayPlan = () => {
 
   const completedCount = tasks.filter((t) => t.completed).length;
   const progress = tasks.length > 0 ? (completedCount / tasks.length) * 100 : 0;
+
+  const handleCompleteDay = () => {
+    if (progress === 100 && selectedDay === currentDay) {
+      const newXp = (profile?.xp_points || 0) + 50;
+      const currentBadges = profile?.badges || [];
+      const newBadges = [...currentBadges];
+
+      const dayBadge = `Day ${selectedDay} Completed`;
+      if (!newBadges.includes(dayBadge)) {
+        newBadges.push(dayBadge);
+      }
+
+      updateProfile({
+        current_day: currentDay + 1,
+        xp_points: newXp,
+        badges: newBadges
+      });
+
+      toast.success(`Day ${selectedDay} fully completed! You earned 50 XP! 🎉`);
+    }
+  };
 
   if (loading || !profile) return null;
 
@@ -110,13 +132,12 @@ const DayPlan = () => {
                 <button
                   key={day}
                   onClick={() => handleDayChange(day)}
-                  className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold transition-all ${
-                    day === selectedDay
-                      ? 'bg-info text-info-foreground shadow-md'
-                      : day <= currentDay
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold transition-all ${day === selectedDay
+                    ? 'bg-info text-info-foreground shadow-md'
+                    : day <= currentDay
                       ? 'bg-success/20 text-success border border-success/30'
                       : 'bg-muted text-muted-foreground'
-                  }`}
+                    }`}
                 >
                   D{day}
                 </button>
@@ -169,11 +190,10 @@ const DayPlan = () => {
               tasks.map((task) => (
                 <div
                   key={task.id}
-                  className={`flex items-start gap-3 p-4 rounded-xl border transition-all ${
-                    task.completed
-                      ? 'bg-success/5 border-success/20'
-                      : 'bg-card border-border hover:border-primary/30'
-                  }`}
+                  className={`flex items-start gap-3 p-4 rounded-xl border transition-all ${task.completed
+                    ? 'bg-success/5 border-success/20'
+                    : 'bg-card border-border hover:border-primary/30'
+                    }`}
                 >
                   <Checkbox
                     checked={task.completed}
@@ -190,13 +210,12 @@ const DayPlan = () => {
                         {task.duration}
                       </span>
                       <span
-                        className={`text-xs px-2 py-0.5 rounded-full ${
-                          task.priority === 'high'
-                            ? 'bg-destructive/10 text-destructive'
-                            : task.priority === 'medium'
+                        className={`text-xs px-2 py-0.5 rounded-full ${task.priority === 'high'
+                          ? 'bg-destructive/10 text-destructive'
+                          : task.priority === 'medium'
                             ? 'bg-warning/10 text-warning'
                             : 'bg-muted text-muted-foreground'
-                        }`}
+                          }`}
                       >
                         {task.priority}
                       </span>
@@ -204,6 +223,17 @@ const DayPlan = () => {
                   </div>
                 </div>
               ))
+            )}
+
+            {progress === 100 && tasks.length > 0 && selectedDay === currentDay && (
+              <div className="pt-4 mt-2 border-t border-border">
+                <Button
+                  className="w-full gap-2 bg-success text-success-foreground hover:bg-success/90"
+                  onClick={handleCompleteDay}
+                >
+                  <CheckCircle2 className="w-5 h-5" /> Complete Day {selectedDay}
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>

@@ -3,34 +3,41 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
-  MessageSquare, 
-  FileText, 
-  Calendar, 
-  Shield, 
+import {
+  MessageSquare,
+  FileText,
+  Calendar,
+  Shield,
   Home,
   LogOut,
   User,
   Sparkles,
   Loader2,
   Users,
-  PartyPopper
+  PartyPopper,
+  Clock,
+  BellRing
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { NotificationBell } from '@/components/Notifications/NotificationBell';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useAdminCommunications } from '@/hooks/useAdminCommunications';
+import { useChatNotifications } from '@/hooks/useChatNotifications';
+import { format, isToday, isTomorrow, isPast } from 'date-fns';
 
 const Dashboard = () => {
   const { profile, user, isAuthenticated, loading, signOut, isAdmin, roleLoading } = useAuth();
   const navigate = useNavigate();
   const { notifications, unreadCount, markRead, markAllRead } = useNotifications(user?.id);
+  const { announcements, deadlines } = useAdminCommunications();
+  const { unreadChatCount } = useChatNotifications();
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       navigate('/');
       return;
     }
-    
+
     if (profile?.is_first_login) {
       navigate('/profile-setup');
     }
@@ -44,7 +51,7 @@ const Dashboard = () => {
 
   const navItems = [
     {
-      title: 'Context Chat',
+      title: 'AI Onboarding Assistant',
       description: 'AI assistant aware of your role & progress',
       icon: MessageSquare,
       path: '/chat',
@@ -70,6 +77,13 @@ const Dashboard = () => {
       icon: Shield,
       path: '/safe-mode',
       gradient: 'bg-gradient-pink',
+    },
+    {
+      title: 'People',
+      description: 'Employee Directory & Networking',
+      icon: Users,
+      path: '/people',
+      gradient: 'bg-gradient-blue',
     },
   ];
 
@@ -118,16 +132,7 @@ const Dashboard = () => {
               </Button>
               {isAdmin && (
                 <div className="flex items-center gap-2">
-                  <Button 
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate('/admin/users')}
-                    className="text-primary-foreground hover:bg-card/20"
-                  >
-                    <Users className="w-4 h-4 mr-2" />
-                    Users
-                  </Button>
-                  <Button 
+                  <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => navigate('/admin/task-plans')}
@@ -136,7 +141,36 @@ const Dashboard = () => {
                     <Calendar className="w-4 h-4 mr-2" />
                     Task Plans
                   </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/admin/communications')}
+                    className="text-primary-foreground hover:bg-card/20"
+                  >
+                    <BellRing className="w-4 h-4 mr-2" />
+                    Comms
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/profile')}
+                    className="text-primary-foreground hover:bg-card/20"
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    Profile
+                  </Button>
                 </div>
+              )}
+              {unreadChatCount > 0 && (
+                <Button
+                  variant="destructive"
+                  size="default"
+                  onClick={() => navigate('/people')}
+                  className="bg-red-700 hover:bg-red-800 text-white animate-bounce shadow-xl shadow-red-900/50 font-bold px-4"
+                >
+                  <MessageSquare className="w-5 h-5 mr-2" />
+                  {unreadChatCount} New Message{unreadChatCount !== 1 && 's'}
+                </Button>
               )}
               <NotificationBell
                 notifications={notifications}
@@ -144,8 +178,8 @@ const Dashboard = () => {
                 onMarkRead={markRead}
                 onMarkAllRead={markAllRead}
               />
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="icon"
                 onClick={handleLogout}
                 className="text-primary-foreground hover:bg-card/20"
@@ -170,13 +204,12 @@ const Dashboard = () => {
                 {[1, 2, 3, 4, 5, 6, 7].map((day) => (
                   <div
                     key={day}
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-all ${
-                      day < currentDay
-                        ? 'bg-success text-success-foreground'
-                        : day === currentDay
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-all ${day < currentDay
+                      ? 'bg-success text-success-foreground'
+                      : day === currentDay
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted text-muted-foreground'
-                    }`}
+                      }`}
                   >
                     D{day}
                   </div>
@@ -191,7 +224,7 @@ const Dashboard = () => {
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {navItems.map((item) => (
-            <Card 
+            <Card
               key={item.path}
               className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 shadow-lg overflow-hidden group"
               onClick={() => navigate(item.path)}
@@ -212,6 +245,75 @@ const Dashboard = () => {
               </CardHeader>
             </Card>
           ))}
+        </div>
+
+        {/* Dashboard Widgets */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+          <Card className="border-0 shadow-lg">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-warning" />
+                <CardTitle className="text-base">Upcoming Deadlines</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {deadlines.filter(d => ['All', department].includes(d.department) && new Date(d.due_date) >= new Date(new Date().setHours(0, 0, 0, 0))).length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No upcoming deadlines.</p>
+                ) : (
+                  deadlines
+                    .filter(d => ['All', department].includes(d.department))
+                    .filter(d => new Date(d.due_date) >= new Date(new Date().setHours(0, 0, 0, 0)))
+                    .map((d) => {
+                      const dateObj = new Date(d.due_date);
+                      const isDueToday = isToday(dateObj);
+                      const isDueTomorrow = isTomorrow(dateObj);
+                      return (
+                        <div key={d.id} className="flex items-start justify-between border-b border-border pb-3">
+                          <div>
+                            <h4 className="font-medium text-sm">{d.title}</h4>
+                            <p className="text-xs text-muted-foreground mt-0.5">{d.department}</p>
+                          </div>
+                          <span className={`text-xs font-semibold px-2 py-1 rounded-full ${isDueToday ? 'text-destructive bg-destructive/10' :
+                            isDueTomorrow ? 'text-warning bg-warning/10' :
+                              'text-primary bg-primary/10'
+                            }`}>
+                            {isDueToday ? 'Due Today' : isDueTomorrow ? 'Tomorrow' : format(dateObj, 'MMM d')}
+                          </span>
+                        </div>
+                      )
+                    })
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <BellRing className="w-5 h-5 text-info" />
+                <CardTitle className="text-base">Announcements</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {announcements.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No recent announcements.</p>
+                ) : (
+                  announcements.map((a, i) => (
+                    <div key={a.id} className={`${i === 0 ? 'bg-primary/5 border-primary/10' : 'bg-muted/50 border-border'} rounded-xl p-3 border`}>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`text-xs font-semibold uppercase tracking-wider ${i === 0 ? 'text-primary' : 'text-foreground'}`}>{a.type}</span>
+                        <span className="text-xs text-muted-foreground ml-auto">{format(new Date(a.created_at), 'MMM d')}</span>
+                      </div>
+                      <h4 className="font-medium text-sm">{a.title}</h4>
+                      <p className="text-xs text-muted-foreground mt-1">{a.content}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </main>
 
