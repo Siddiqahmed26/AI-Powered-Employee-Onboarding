@@ -82,15 +82,19 @@ const People = () => {
                 if (data && profile) {
                     const filteredData = data.filter((p: any) => p.id !== profile.id);
                     const mapped = filteredData.map((p: any, ix: number) => {
-                        const rawName = p.full_name || p.username || `Colleague`;
-                        const isEmail = rawName.includes('@');
+                        const rawName = p.full_name || p.username || p.email || 'Employee';
+                        const isEmailSource = rawName.includes('@');
 
                         let finalName = rawName;
-                        if (isEmail) {
+                        if (isEmailSource) {
                             const emailPrefix = rawName.split('@')[0];
-                            const match = emailPrefix.match(/^[a-zA-Z]+/);
-                            const base = match ? match[0] : emailPrefix.replace(/[^a-zA-Z]/g, '');
-                            finalName = (base.charAt(0).toUpperCase() + base.slice(1).toLowerCase()) || 'User';
+                            const baseName = emailPrefix
+                                .split(/[\._\-]+/) // Split "john.doe" or "john_doe"
+                                .map(w => w.replace(/[^a-zA-Z]/g, '')) // Remove numbers 
+                                .filter(w => w.length > 0)
+                                .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+                                .join(' ');
+                            finalName = baseName || 'User';
                         } else {
                             finalName = rawName
                                 .split(' ')
@@ -99,7 +103,7 @@ const People = () => {
                                 .trim() || 'Employee';
                         }
 
-                        const finalEmail = p.email || (isEmail ? rawName : `${finalName.toLowerCase().replace(/\s+/g, '.')}@company.com`);
+                        const finalEmail = p.email || (isEmailSource ? rawName : `${finalName.toLowerCase().replace(/\s+/g, '.')}@company.com`);
 
                         return {
                             id: p.id,

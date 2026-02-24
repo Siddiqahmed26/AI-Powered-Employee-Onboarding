@@ -63,16 +63,19 @@ const PublicProfile = () => {
 
     if (!profile) return null;
 
-    const rawName = profile.full_name || profile.username || 'Employee';
-    const isEmail = rawName.includes('@');
+    const rawName = profile.full_name || profile.username || profile.email || 'Employee';
+    const isEmailSource = rawName.includes('@');
 
     let finalName = rawName;
-    if (isEmail) {
-        // Extract just the first alphabetical chunk before dots/numbers in the email
+    if (isEmailSource) {
         const emailPrefix = rawName.split('@')[0];
-        const match = emailPrefix.match(/^[a-zA-Z]+/);
-        const base = match ? match[0] : emailPrefix.replace(/[^a-zA-Z]/g, '');
-        finalName = base.charAt(0).toUpperCase() + base.slice(1).toLowerCase();
+        const baseName = emailPrefix
+            .split(/[\._\-]+/)
+            .map(w => w.replace(/[^a-zA-Z]/g, ''))
+            .filter(w => w.length > 0)
+            .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+            .join(' ');
+        finalName = baseName || 'User';
     } else {
         finalName = rawName
             .split(' ')
@@ -81,7 +84,7 @@ const PublicProfile = () => {
             .trim() || 'Employee';
     }
 
-    const displayEmail = profile.email || (isEmail ? rawName : `${finalName.toLowerCase().replace(/\s+/g, '.')}@company.com`);
+    const displayEmail = profile.email || (isEmailSource ? rawName : `${finalName.toLowerCase().replace(/\s+/g, '.')}@company.com`);
 
     return (
         <div className="min-h-screen bg-background">
