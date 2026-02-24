@@ -17,18 +17,20 @@ When successfully hosted, the AI-Powered Employee Onboarding acts as a unified h
 ## 📸 Snapshots
 
 *Replace the placeholders below with live screenshots of your application hosted on Vercel!*
+### Welcome Center
+![Welcome Center Screenshot](./screenshots/Welcome%20Center.png)
 
 ### The Dashboard
-![Dashboard Screenshot Link](https://placehold.co/800x400?text=Replace+with+Dashboard+Screenshot)
+![Dashboard Screenshot](./screenshots/Dashboard.png)
 
 ### People Directory
-![People Directory Screenshot Link](https://placehold.co/800x400?text=Replace+with+People+Directory+Screenshot)
+![People Directory Screenshot](./screenshots/People%20Directory.png)
 
-### Public Profiles
-![Public Profile Screenshot Link](https://placehold.co/800x400?text=Replace+with+Profile+Screenshot)
+### User Profile
+![User Profile Screenshot](./screenshots/User%20Profile.png)
 
 ### Integrated Context Chats
-![Chat Interface Screenshot Link](https://placehold.co/800x400?text=Replace+with+Chat+Window+Screenshot)
+![Chat Interface Screenshot](./screenshots/Integrated%20Context%20Chats.png)
 
 ---
 
