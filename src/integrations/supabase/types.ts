@@ -280,6 +280,7 @@ export type Database = {
           full_name: string | null
           id: string
           is_first_login: boolean | null
+          job_title: string | null
           location: string | null
           manager_message: string | null
           manager_name: string | null

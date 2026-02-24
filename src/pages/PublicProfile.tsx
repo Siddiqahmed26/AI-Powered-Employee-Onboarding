@@ -11,7 +11,7 @@ interface ProfileData {
     full_name: string | null;
     username: string | null;
     department: string | null;
-    role: string | null;
+    job_title: string | null;
     location: string | null;
     bio: string | null;
     skills: string[] | null;
@@ -122,7 +122,7 @@ const PublicProfile = () => {
                             <div className="flex-1 pt-2 w-full">
                                 <h1 className="text-3xl font-bold">{finalName}</h1>
                                 <div className="flex flex-col gap-1 mt-1">
-                                    <p className="text-lg text-primary font-medium">{profile.role || 'Employee'}</p>
+                                    <p className="text-lg text-primary font-medium uppercase tracking-wider">{profile.job_title || 'Employee'}</p>
                                     <div className="flex items-center gap-2 text-muted-foreground">
                                         <Mail className="w-4 h-4" />
                                         <span>{displayEmail}</span>

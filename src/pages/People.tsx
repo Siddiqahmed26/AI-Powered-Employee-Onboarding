@@ -108,7 +108,7 @@ const People = () => {
                         return {
                             id: p.id,
                             name: finalName,
-                            role: p.role || 'Employee',
+                            role: p.job_title || 'Employee',
                             department: p.department || 'General',
                             location: p.location || 'Remote',
                             bio: p.bio || 'Happy to connect!',

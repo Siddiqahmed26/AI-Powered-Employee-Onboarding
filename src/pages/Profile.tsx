@@ -20,6 +20,7 @@ const Profile = () => {
         full_name: '',
         username: '',
         bio: '',
+        job_title: '',
         location: '',
         department: '',
         avatar_url: '',
@@ -35,6 +36,7 @@ const Profile = () => {
                 full_name: profile.full_name || '',
                 username: profile.username || '',
                 bio: profile.bio || '',
+                job_title: profile.job_title || '',
                 location: profile.location || '',
                 department: profile.department || '',
                 avatar_url: profile.avatar_url || '',
@@ -162,6 +164,17 @@ const Profile = () => {
                                     name="username"
                                     placeholder="janedoe99"
                                     value={formData.username}
+                                    onChange={handleInputChange}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="job_title">Job Title</Label>
+                                <Input
+                                    id="job_title"
+                                    name="job_title"
+                                    placeholder="e.g. Software Engineer, Marketing Manager"
+                                    value={formData.job_title}
                                     onChange={handleInputChange}
                                 />
                             </div>
