@@ -23,6 +23,7 @@ interface Person {
     skills: string[];
     initials: string;
     avatarUrl: string | null;
+    email: string | null;
     color: string;
     isNewJoinee: boolean;
     unreadCount: number;
@@ -80,20 +81,42 @@ const People = () => {
 
                 if (data && profile) {
                     const filteredData = data.filter((p: any) => p.id !== profile.id);
-                    const mapped = filteredData.map((p: any, ix: number) => ({
-                        id: p.id,
-                        name: p.full_name || p.username || `Colleague (${p.id.substring(0, 4)})`,
-                        role: p.role || 'Employee',
-                        department: p.department || 'General',
-                        location: p.location || 'Remote',
-                        bio: p.bio || 'Happy to connect!',
-                        skills: p.skills || [],
-                        avatarUrl: p.avatar_url || null,
-                        initials: getInitials(p.full_name || p.username || 'U'),
-                        color: getColor(ix),
-                        isNewJoinee: (p.current_day || 1) <= 7,
-                        unreadCount: unreadCounts[p.id] || 0,
-                    }));
+                    const mapped = filteredData.map((p: any, ix: number) => {
+                        const rawName = p.full_name || p.username || `Colleague`;
+                        const isEmail = rawName.includes('@');
+
+                        let finalName = rawName;
+                        if (isEmail) {
+                            const emailPrefix = rawName.split('@')[0];
+                            const match = emailPrefix.match(/^[a-zA-Z]+/);
+                            const base = match ? match[0] : emailPrefix.replace(/[^a-zA-Z]/g, '');
+                            finalName = (base.charAt(0).toUpperCase() + base.slice(1).toLowerCase()) || 'User';
+                        } else {
+                            finalName = rawName
+                                .split(' ')
+                                .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+                                .join(' ')
+                                .trim() || 'Employee';
+                        }
+
+                        const finalEmail = p.email || (isEmail ? rawName : `${finalName.toLowerCase().replace(/\s+/g, '.')}@company.com`);
+
+                        return {
+                            id: p.id,
+                            name: finalName,
+                            role: p.role || 'Employee',
+                            department: p.department || 'General',
+                            location: p.location || 'Remote',
+                            bio: p.bio || 'Happy to connect!',
+                            skills: p.skills || [],
+                            avatarUrl: p.avatar_url || null,
+                            email: finalEmail,
+                            initials: getInitials(finalName),
+                            color: getColor(ix),
+                            isNewJoinee: (p.current_day || 1) <= 7,
+                            unreadCount: unreadCounts[p.id] || 0,
+                        };
+                    });
 
                     // Sort: unread first, then by name
                     mapped.sort((a, b) => {
@@ -127,11 +150,22 @@ const People = () => {
     const newJoinees = filteredPeople.filter(p => p.isNewJoinee);
     const otherColleagues = filteredPeople.filter(p => !p.isNewJoinee);
 
-    const handleCoffeeChat = (name: string) => {
-        toast.success(`Coffee chat request sent to ${name}! ☕`);
+    const handleCoffeeChat = (e: React.MouseEvent, person: Person) => {
+        e.stopPropagation();
+
+        // Fallback to a procedural email if none exists on the profile
+        const recipientEmail = person.email;
+        const subject = encodeURIComponent(`Coffee Chat Request from ${profile?.full_name || 'a colleague'}`);
+        const body = encodeURIComponent(`Hi ${person.name},\n\nI'd love to grab a coffee/virtual chat with you sometime this week!\n\nBest,\n${profile?.full_name || 'Your Colleague'}`);
+
+        // Trigger default mail client
+        window.location.href = `mailto:${recipientEmail}?subject=${subject}&body=${body}`;
+
+        toast.success(`Coffee chat email drafted to ${person.name}! ☕`);
     };
 
-    const openChat = async (person: Person) => {
+    const openChat = async (e: React.MouseEvent, person: Person) => {
+        e.stopPropagation();
         setChatUser(person);
         setMessages([]); // Cleared before fetch starts
 
@@ -252,7 +286,11 @@ const People = () => {
     }
 
     const renderPersonCard = (person: Person) => (
-        <Card key={person.id} className="border-0 shadow-lg overflow-hidden group">
+        <Card
+            key={person.id}
+            className="border-0 shadow-lg overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+            onClick={() => navigate(`/profile/${person.id}`)}
+        >
             <div className={`h-2 ${person.color}`} />
             <CardContent className="p-6">
                 <div className="flex items-start gap-4">
@@ -309,15 +347,15 @@ const People = () => {
                         variant="outline"
                         size="sm"
                         className="flex-1 gap-2 border-primary/20 hover:bg-primary/5"
-                        onClick={() => handleCoffeeChat(person.name)}
+                        onClick={(e) => handleCoffeeChat(e, person)}
                     >
                         <Coffee className="w-4 h-4 text-primary" /> Coffee Chat
                     </Button>
                     <Button
-                        variant="secondary"
+                        variant={person.unreadCount > 0 ? "destructive" : "secondary"}
                         size="sm"
-                        className="px-4"
-                        onClick={() => openChat(person)}
+                        className={`px-4 ${person.unreadCount > 0 ? 'bg-red-600 hover:bg-red-700 text-white animate-pulse shadow-md shadow-red-900/20' : ''}`}
+                        onClick={(e) => openChat(e, person)}
                     >
                         <MessageSquare className="w-4 h-4" /> Message
                     </Button>
