@@ -30,13 +30,20 @@ interface Props {
 export const NotificationBell = ({ notifications, unreadCount, unreadChatCount = 0, userId, onChatClick, onMarkRead, onMarkAllRead }: Props) => {
   const [open, setOpen] = useState(false);
 
-  const storageKey = userId ? `lastSeenChatCount_${userId}` : 'lastSeenChatCount';
+  const storageKey = userId ? `lastSeenChatCount_${userId}` : null;
 
   const [lastSeenChatCount, setLastSeenChatCount] = useState(() => {
+    if (!storageKey) return 0;
     return parseInt(localStorage.getItem(storageKey) || '0', 10);
   });
 
   useEffect(() => {
+    // If there is no valid user, clear local tracking for safety
+    if (!storageKey) {
+      setLastSeenChatCount(0);
+      return;
+    }
+
     // If the actual unread count drops (they read some messages in the directory),
     // sync our local tracking downwards so we don't end up with negative math.
     if (unreadChatCount < lastSeenChatCount) {
@@ -50,7 +57,9 @@ export const NotificationBell = ({ notifications, unreadCount, unreadChatCount =
     // When they open the menu, we mark the *current* chat count as seen
     if (newOpen && unreadChatCount > lastSeenChatCount) {
       setLastSeenChatCount(unreadChatCount);
-      localStorage.setItem(storageKey, unreadChatCount.toString());
+      if (storageKey) {
+        localStorage.setItem(storageKey, unreadChatCount.toString());
+      }
     }
   };
 
