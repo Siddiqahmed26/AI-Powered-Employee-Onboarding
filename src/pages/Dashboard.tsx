@@ -117,10 +117,15 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <div className="hidden sm:flex items-center gap-2 bg-card/10 backdrop-blur-sm rounded-lg px-3 py-2">
-                <User className="w-4 h-4" />
-                <span className="text-sm">{role}</span>
-              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/profile')}
+                className="text-primary-foreground hover:bg-card/20 hidden sm:flex"
+              >
+                <User className="w-4 h-4 mr-2" />
+                User Profile
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"
