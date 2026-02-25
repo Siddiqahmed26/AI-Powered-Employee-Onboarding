@@ -16,6 +16,7 @@ const Profile = () => {
 
     const [isSaving, setIsSaving] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [formData, setFormData] = useState({
         full_name: '',
         username: '',
@@ -99,6 +100,29 @@ const Profile = () => {
             toast.error(error.message || "Failed to update profile.");
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        const confirmed = window.confirm("Are you SURE you want to permanently delete your account? This action cannot be undone and you will lose all your data.");
+        if (!confirmed) return;
+
+        setIsDeleting(true);
+        try {
+            const { error: rpcError } = await supabase.rpc('delete_user');
+
+            if (rpcError) {
+                console.error("RPC Error:", rpcError);
+                throw new Error("Failed to delete account on the server.");
+            }
+
+            await supabase.auth.signOut();
+            toast.success("Your account has been successfully deleted.");
+            navigate('/');
+        } catch (error: any) {
+            console.error("Error deleting account:", error);
+            toast.error(error.message || "Failed to delete account. Please try again.");
+            setIsDeleting(false);
         }
     };
 
@@ -294,6 +318,32 @@ const Profile = () => {
                             )}
                         </Button>
                     </CardFooter>
+                </Card>
+
+                <Card className="shadow-lg border-0 shadow-destructive/10 mt-8 bg-destructive/5 border-destructive/20">
+                    <CardHeader className="pb-4 border-b border-destructive/10">
+                        <CardTitle className="text-xl text-destructive font-semibold">Danger Zone</CardTitle>
+                        <CardDescription className="text-destructive/80">
+                            Permanently delete your account and all of your data. This action cannot be undone.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                        <Button
+                            variant="destructive"
+                            onClick={handleDeleteAccount}
+                            disabled={isDeleting}
+                            className="bg-destructive hover:bg-destructive/90"
+                        >
+                            {isDeleting ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Deleting Account...
+                                </>
+                            ) : (
+                                "Delete Account"
+                            )}
+                        </Button>
+                    </CardContent>
                 </Card>
             </main>
         </div>
