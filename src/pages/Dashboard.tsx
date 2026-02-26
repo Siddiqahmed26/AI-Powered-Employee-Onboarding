@@ -106,24 +106,24 @@ const Dashboard = () => {
       {/* Header */}
       <header className="bg-gradient-blue text-primary-foreground">
         <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-card/20 backdrop-blur-sm flex items-center justify-center">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <div className="w-12 h-12 rounded-xl bg-card/20 backdrop-blur-sm flex items-center justify-center shrink-0">
                 <Home className="w-6 h-6" />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold">Dashboard</h1>
-                <p className="text-sm opacity-80">Central navigation hub connecting all onboarding features</p>
+              <div className="min-w-0">
+                <h1 className="text-2xl font-bold truncate">Dashboard</h1>
+                <p className="text-sm opacity-80 hidden sm:block truncate">Central navigation hub connecting all onboarding features</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-start md:justify-end">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate('/profile')}
                 className="text-primary-foreground hover:bg-card/20 hidden sm:flex"
               >
-                <User className="w-4 h-4 mr-2" />
+                <User className="w-4 h-4 mr-2 shrink-0" />
                 User Profile
               </Button>
               <Button
@@ -132,19 +132,19 @@ const Dashboard = () => {
                 onClick={() => navigate('/welcome')}
                 className="text-primary-foreground hover:bg-card/20 hidden sm:flex"
               >
-                <PartyPopper className="w-4 h-4 mr-2" />
+                <PartyPopper className="w-4 h-4 mr-2 shrink-0" />
                 Welcome Center
               </Button>
               {isAdmin && (
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => navigate('/admin/task-plans')}
                     className="text-primary-foreground hover:bg-card/20"
                   >
-                    <Calendar className="w-4 h-4 mr-2" />
-                    Task Plans
+                    <Calendar className="w-4 h-4 sm:mr-2 shrink-0" />
+                    <span className="hidden sm:inline">Task Plans</span>
                   </Button>
                   <Button
                     variant="ghost"
@@ -152,8 +152,8 @@ const Dashboard = () => {
                     onClick={() => navigate('/admin/communications')}
                     className="text-primary-foreground hover:bg-card/20"
                   >
-                    <BellRing className="w-4 h-4 mr-2" />
-                    Comms
+                    <BellRing className="w-4 h-4 sm:mr-2 shrink-0" />
+                    <span className="hidden sm:inline">Comms</span>
                   </Button>
                   <Button
                     variant="ghost"
@@ -161,8 +161,8 @@ const Dashboard = () => {
                     onClick={() => navigate('/profile')}
                     className="text-primary-foreground hover:bg-card/20"
                   >
-                    <User className="w-4 h-4 mr-2" />
-                    Profile
+                    <User className="w-4 h-4 sm:mr-2 shrink-0" />
+                    <span className="hidden sm:inline">Profile</span>
                   </Button>
                 </div>
               )}
@@ -179,7 +179,7 @@ const Dashboard = () => {
                 variant="ghost"
                 size="icon"
                 onClick={handleLogout}
-                className="text-primary-foreground hover:bg-card/20"
+                className="text-primary-foreground hover:bg-card/20 shrink-0"
               >
                 <LogOut className="w-5 h-5" />
               </Button>
